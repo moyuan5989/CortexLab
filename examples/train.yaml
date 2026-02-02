@@ -1,0 +1,36 @@
+schema_version: 1
+
+model:
+  path: "Qwen/Qwen3-0.6B"
+  trust_remote_code: false
+
+adapter:
+  method: lora
+  preset: "attention-qv"
+  rank: 8
+  scale: 20.0
+  dropout: 0.0
+
+data:
+  train: "./data/train.jsonl"
+  valid: "./data/valid.jsonl"
+  cache_dir: "~/.lmforge/cache/preprocessed"
+  max_seq_length: 2048
+  mask_prompt: true
+
+training:
+  batch_size: 4
+  num_iters: 1000
+  learning_rate: 1.0e-5
+  optimizer: adam
+  grad_accumulation_steps: 1
+  seed: 42
+  steps_per_report: 10
+  steps_per_eval: 200
+  steps_per_save: 100
+  val_batches: 25
+  keep_last_n_checkpoints: 3
+
+runtime:
+  run_dir: "~/.lmforge/runs"
+  eager: false

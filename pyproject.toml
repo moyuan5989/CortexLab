@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lmforge"
+version = "0.1.0"
+description = "LoRA SFT training framework for MLX on Apple Silicon"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "mlx>=0.18.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "numpy>=1.24.0",
+    "transformers>=4.35.0",
+    "safetensors>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-timeout>=2.0",
+]
+wandb = [
+    "wandb>=0.16.0",
+]
+
+[project.scripts]
+lmforge = "lmforge.cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["lmforge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
