@@ -62,20 +62,89 @@ class MetricsLoggerCallback(Callback):
     """Writes JSONL metrics to logs/metrics.jsonl."""
 
     def __init__(self, log_path: Path):
-        raise NotImplementedError(
-            "MetricsLoggerCallback will be implemented in M4."
-        )
+        self.log_path = Path(log_path)
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def on_step_end(self, state: TrainState, metrics: dict) -> None:
+        """Write training metrics to JSONL."""
+        from lmforge.logging.metrics import write_metrics_line
+
+        metrics_with_event = {"event": "train", **metrics}
+        write_metrics_line(self.log_path, metrics_with_event)
+
+    def on_eval_end(self, state: TrainState, metrics: dict) -> None:
+        """Write evaluation metrics to JSONL."""
+        from lmforge.logging.metrics import write_metrics_line
+
+        metrics_with_event = {
+            "event": "eval",
+            "step": state.step,
+            **metrics,
+        }
+        write_metrics_line(self.log_path, metrics_with_event)
 
 
 class ConsoleCallback(Callback):
     """Prints human-readable training progress to stdout."""
 
     def __init__(self, num_iters: int):
-        raise NotImplementedError("ConsoleCallback will be implemented in M4.")
+        self.num_iters = num_iters
+
+    def on_step_end(self, state: TrainState, metrics: dict) -> None:
+        """Print training metrics to console."""
+        from lmforge.logging.metrics import format_console_line
+
+        line = format_console_line(metrics, self.num_iters)
+        print(line)
+
+    def on_eval_end(self, state: TrainState, metrics: dict) -> None:
+        """Print evaluation metrics to console."""
+        from lmforge.logging.metrics import format_console_line
+
+        line = format_console_line({**metrics, "step": state.step, "event": "eval"}, self.num_iters)
+        print(line)
+
+    def on_save(self, state: TrainState, checkpoint_dir: Path) -> None:
+        """Print checkpoint save notification."""
+        print(f"Step {state.step}/{self.num_iters} | Saved checkpoint to {checkpoint_dir}")
 
 
 class WandBCallback(Callback):
     """Optional Weights & Biases integration (try/except import)."""
 
-    def __init__(self, project: str, config: dict):
-        raise NotImplementedError("WandBCallback will be implemented in M4.")
+    def __init__(self, project: str, run_name: str, config: dict):
+        try:
+            import wandb
+        except ImportError:
+            raise ImportError(
+                "wandb is not installed. Install with: pip install wandb"
+            )
+
+        self.wandb = wandb
+        self.run = None
+        self.project = project
+        self.run_name = run_name
+        self.config = config
+
+    def on_train_begin(self, state: TrainState) -> None:
+        """Initialize wandb run."""
+        self.run = self.wandb.init(
+            project=self.project,
+            name=self.run_name,
+            config=self.config,
+        )
+
+    def on_step_end(self, state: TrainState, metrics: dict) -> None:
+        """Log training metrics to wandb."""
+        if self.run is not None:
+            self.wandb.log(metrics, step=state.step)
+
+    def on_eval_end(self, state: TrainState, metrics: dict) -> None:
+        """Log evaluation metrics to wandb."""
+        if self.run is not None:
+            self.wandb.log(metrics, step=state.step)
+
+    def on_train_end(self, state: TrainState) -> None:
+        """Finish wandb run."""
+        if self.run is not None:
+            self.run.finish()

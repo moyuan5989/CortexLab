@@ -10,8 +10,9 @@
 **M1: Config System ✅ COMPLETE**
 **M2: Data Pipeline ✅ COMPLETE**
 **M3: Model + Adapters ✅ COMPLETE**
+**M4: Trainer Infrastructure ✅ COMPLETE**
 
-Full model loading + LoRA adapter system with 38 passing tests (14 M1 + 14 M2 + 10 M3).
+Full trainer infrastructure with optimizer factory, checkpoint management, callbacks, and metrics logging. 45 passing tests (14 M1 + 14 M2 + 10 M3 + 7 M4).
 
 ---
 
@@ -115,7 +116,14 @@ Full model loading + LoRA adapter system with 38 passing tests (14 M1 + 14 M2 + 
   - LoRAEmbedding.from_base() and fuse()
   - apply_lora() integration
   - named_modules() recursive enumeration
-- ⏸️ `test_trainer_infra.py` — 7 tests for M4 (all skip)
+- ✅ **`test_trainer_infra.py` — 7 TESTS PASSING (M4 COMPLETE)**
+  - Optimizer factory (Adam with LR)
+  - LR schedule changes over steps
+  - Checkpoint save produces 3 files
+  - Load restores state
+  - Atomic write uses tmp dir
+  - Retention keeps last N + best
+  - JSONL output format
 - ⏸️ `test_integration.py` — 3 tests for M6 (all skip)
 
 ### 6. Verification ✅ All Passing
@@ -133,7 +141,7 @@ lmforge prepare --help   # ✅ Shows prepare options
 lmforge train --help     # ✅ Shows train options
 
 # Tests
-pytest tests/ -v         # ✅ 38 passed, 10 skipped
+pytest tests/ -v         # ✅ 45 passed, 3 skipped
 
 # Config loading
 python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_yaml('examples/train.yaml')"  # ✅ OK
@@ -220,9 +228,49 @@ python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_ya
 
 ---
 
-## What's Next: M4 — Trainer Infrastructure
+## What's Been Accomplished in M4
 
-**Target**: Implement data preprocessing, caching, and batching.
+### Trainer Infrastructure
+
+✅ **Optimizer Factory** (`trainer/optimizer.py`):
+- `build_optimizer()` — creates Adam, AdamW, SGD, or Adafactor optimizers from config
+- `build_scheduler()` — builds stateless LR schedules (cosine_decay, linear_schedule, step_decay, exponential_decay)
+- Warmup support via `join_schedules()`
+- Pure functions of step number for resume compatibility
+
+✅ **Checkpoint Manager** (`trainer/checkpoint.py`):
+- `save()` — atomic checkpoint save with exactly 3 files (adapters.safetensors, optimizer.safetensors, state.json)
+- `load()` — restore model, optimizer, and training state
+- Retention policy: keep last N checkpoints + best
+- Best symlink management
+- Tmp-dir-then-rename pattern for atomic writes
+- Schema version 1 support with forward compatibility check
+
+✅ **Callbacks** (`trainer/callbacks.py`):
+- `MetricsLoggerCallback` — writes JSONL metrics to logs/metrics.jsonl
+- `ConsoleCallback` — prints human-readable progress to stdout
+- `WandBCallback` — optional W&B integration with try/except import
+- Base `Callback` and `CallbackList` classes (from M0) used correctly
+
+✅ **Metrics Logging** (`logging/metrics.py`):
+- `write_metrics_line()` — appends JSONL line with auto-added timestamp
+- `format_console_line()` — formats metrics for console display
+- Two event types: "train" and "eval"
+- ISO 8601 timestamps with Z suffix
+
+### Files Modified (M4)
+
+- `lmforge/trainer/optimizer.py` — 124 lines (optimizer + scheduler factory)
+- `lmforge/trainer/checkpoint.py` — 188 lines (checkpoint manager)
+- `lmforge/trainer/callbacks.py` — 104 lines (3 callback implementations)
+- `lmforge/logging/metrics.py` — 53 lines (JSONL writer + console formatter)
+- `tests/test_trainer_infra.py` — 287 lines (7 comprehensive tests)
+
+---
+
+## What's Next: M5 — Trainer + Run Management
+
+**Target**: Implement the full training loop and run orchestration.
 
 ### Deliverables
 
@@ -277,8 +325,8 @@ python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_ya
 | **M1: Config System** | ✅ **COMPLETE** | 14 tests passing, all validators working |
 | **M2: Data Pipeline** | ✅ **COMPLETE** | 14 tests passing, `lmforge prepare` working |
 | **M3: Model + Adapters** | ✅ **COMPLETE** | 10 tests passing, LoRA + targeting complete |
-| **M4: Trainer Infra** | 🎯 **NEXT** | Optimizer, checkpoints, callbacks, metrics |
-| **M5: Trainer + Run** | ⏸️ Pending | Full training loop, run management, manifest |
+| **M4: Trainer Infra** | ✅ **COMPLETE** | 7 tests passing, optimizer, checkpoints, callbacks, metrics |
+| **M5: Trainer + Run** | 🎯 **NEXT** | Full training loop, run management, manifest |
 | **M6: Integration** | ⏸️ Pending | End-to-end tests, resume validation |
 
 ---
