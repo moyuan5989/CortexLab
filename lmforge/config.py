@@ -26,6 +26,7 @@ class ModelConfig(BaseModel):
     path: str
     tokenizer_path: Optional[str] = None
     trust_remote_code: bool = False
+    revision: Optional[str] = None  # HF revision/commit hash (None = latest)
 
 
 class AdapterConfig(BaseModel):

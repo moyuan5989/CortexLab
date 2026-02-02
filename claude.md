@@ -830,3 +830,138 @@ The following are explicitly out of scope for v0. Do not write code, stubs, plac
 - Evaluation harness integration (lm-eval)
 - Perplexity measurement
 - Upload to HuggingFace Hub
+
+---
+
+## 13. M7: Hugging Face Model Loading (Added 2026-02-02)
+
+### Overview
+
+M7 adds automatic resolution of Hugging Face model IDs to local paths. Users can specify `model.path: "Qwen/Qwen3-0.8B"` directly in configs without manual downloading.
+
+### Resolution Layer
+
+**Location**: `lmforge/models/resolve.py`
+
+**Entry point**: `resolve_model(model_path, revision=None, trust_remote_code=False, token=None) → ResolvedModel`
+
+**When it runs**: At the start of `prepare()` and `train()`, before any model loading.
+
+### Resolution Flow
+
+1. **Classify path** - Is it a local path or HF repo ID?
+   - If local: verify existence, return as-is
+   - If HF: proceed to resolution
+
+2. **Resolve revision** (online mode only)
+   - If `revision` provided: use it directly
+   - If `revision=None`: call `huggingface_hub.model_info()` to get latest commit hash
+
+3. **Download/cache**
+   - Call `huggingface_hub.snapshot_download(repo_id, revision, local_files_only=offline)`
+   - Uses standard HF cache: `~/.cache/huggingface/hub/`
+   - Idempotent: returns cached path immediately if already downloaded
+
+4. **Return ResolvedModel**
+   - `local_path`: Absolute path to model directory
+   - `resolved_revision`: Pinned commit hash (for reproducibility)
+   - `resolution_metadata`: Dict for manifest
+
+### Config Changes
+
+**One new optional field** (backward-compatible):
+
+```python
+class ModelConfig(BaseModel):
+    path: str
+    tokenizer_path: Optional[str] = None
+    trust_remote_code: bool = False
+    revision: Optional[str] = None  # NEW: pin to specific HF revision
+```
+
+When `revision=None` (default): resolve to latest and record commit hash in manifest.
+
+When `revision` is specified: use exactly that revision (for reproducibility).
+
+### Manifest Changes
+
+**New top-level field** `model_resolution`:
+
+```json
+{
+  "model_resolution": {
+    "source_id": "Qwen/Qwen3-0.8B",
+    "resolved_revision": "a1b2c3d4e5f6...",
+    "local_path": "/Users/user/.cache/huggingface/hub/.../snapshots/a1b2c3d",
+    "is_local": false
+  }
+}
+```
+
+This is an **additive extension**. Existing tools that read manifests ignore unknown fields (v0 forward compatibility rule).
+
+### Offline Mode
+
+Respects `HF_HUB_OFFLINE=1` environment variable:
+
+- **Online mode** (default): Calls `model_info()` to pin revision, then downloads if needed
+- **Offline mode**: Skips `model_info()`, uses cached snapshot only, fails if not cached
+
+### Cache Location
+
+Models are cached in the **standard HuggingFace Hub cache**:
+
+```
+~/.cache/huggingface/hub/
+└── models--Qwen--Qwen3-0.8B/
+    ├── snapshots/
+    │   └── a1b2c3d.../  # The actual model files
+    └── ...
+```
+
+**No LMForge-specific model cache**. This ensures:
+- No duplicate storage (models are multi-GB)
+- Ecosystem compatibility (shared with mlx-lm, transformers, etc.)
+- Battle-tested cache management (partial downloads, concurrent access)
+
+### Error Handling
+
+Clear, actionable error messages for:
+
+- **Gated models**: Tells user to accept license and set `HF_TOKEN`
+- **Repo not found**: Suggests checking model ID on huggingface.co
+- **Network errors**: Suggests offline mode or local path
+- **Offline cache miss**: Tells user how to download first
+- **Disk space**: Reports available space and suggests changing HF_HOME
+
+### Integration Points
+
+Resolution is called from:
+
+1. `lmforge.train()` - Resolves model and tokenizer before loading
+2. `lmforge.prepare()` - Resolves tokenizer before tokenization
+
+Downstream consumers (`load_model()`, `AutoTokenizer.from_pretrained()`) receive resolved local paths, not raw `model.path`.
+
+### Contract Preservation
+
+M7 does **not** modify any v0 frozen contracts:
+
+- ✅ Checkpoint format unchanged (3 files)
+- ✅ Batch contract unchanged
+- ✅ Resume semantics unchanged
+- ✅ Config schema: additive extension only (`revision` field)
+- ✅ Manifest: additive field (`model_resolution`)
+
+### What M7 Does NOT Do
+
+- Does NOT create a LMForge-specific model cache
+- Does NOT implement weight conversion (delegates to mlx_lm)
+- Does NOT add a `lmforge model` CLI subcommand
+- Does NOT copy model weights into run directories
+- Does NOT modify checkpoint directories
+- Does NOT change training loop or mx.compile behavior
+
+### Design Document
+
+See `M7_HF_MODEL_LOADING_DESIGN.md` for the complete design specification.

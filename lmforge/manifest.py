@@ -24,6 +24,7 @@ class RunManifest:
     hardware: HardwareInfo
     data_fingerprint: str
     created_at: str
+    model_resolution: dict  # Model resolution metadata (source_id, revision, paths)
 
 
 @dataclass
@@ -85,7 +86,12 @@ def collect_environment() -> EnvironmentInfo:
     )
 
 
-def write_manifest(run_dir: Path, config: dict, data_fingerprint: str) -> RunManifest:
+def write_manifest(
+    run_dir: Path,
+    config: dict,
+    data_fingerprint: str,
+    model_resolution: dict,
+) -> RunManifest:
     """Write manifest.json and environment.json to the run directory."""
     import json
     from datetime import datetime, timezone
@@ -115,6 +121,7 @@ def write_manifest(run_dir: Path, config: dict, data_fingerprint: str) -> RunMan
         hardware=hardware,
         data_fingerprint=data_fingerprint,
         created_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        model_resolution=model_resolution,
     )
 
     # Write manifest.json
@@ -135,6 +142,7 @@ def write_manifest(run_dir: Path, config: dict, data_fingerprint: str) -> RunMan
         },
         "data_fingerprint": manifest.data_fingerprint,
         "created_at": manifest.created_at,
+        "model_resolution": manifest.model_resolution,
     }
 
     (run_dir / "manifest.json").write_text(json.dumps(manifest_dict, indent=2))

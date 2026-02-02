@@ -19,6 +19,7 @@ def prepare(
     trust_remote_code: bool = False,
     max_seq_length: int = 2048,
     mask_prompt: bool = True,
+    revision: str | None = None,
 ) -> dict:
     """Pre-tokenize a dataset and write a safetensors cache to disk.
 
@@ -29,18 +30,30 @@ def prepare(
         trust_remote_code: Trust remote code when loading tokenizer
         max_seq_length: Maximum sequence length
         mask_prompt: Mask prompt tokens from loss
+        revision: Optional HF revision/commit hash
 
     Returns:
         Dict of statistics (sample count, total tokens, etc.)
     """
+    from lmforge.models.resolve import resolve_model
+
     # Default output directory
     if output is None:
         output = "~/.lmforge/cache/preprocessed"
 
-    # Load tokenizer
-    print(f"Loading tokenizer from {model}...")
-    tokenizer = AutoTokenizer.from_pretrained(
+    # Resolve model (HF repo ID → local path)
+    print(f"Resolving model: {model}...")
+    resolved = resolve_model(
         model,
+        revision=revision,
+        trust_remote_code=trust_remote_code,
+    )
+    print()
+
+    # Load tokenizer
+    print(f"Loading tokenizer from {resolved.local_path}...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        resolved.local_path,
         trust_remote_code=trust_remote_code,
     )
 
@@ -125,6 +138,7 @@ def train(config) -> "lmforge.trainer.state.TrainState":
     from lmforge.data.cache import check_cache, read_cache
     from lmforge.manifest import write_manifest
     from lmforge.models.loader import load_model
+    from lmforge.models.resolve import resolve_model
     from lmforge.trainer.callbacks import ConsoleCallback, MetricsLoggerCallback
     from lmforge.trainer.trainer import Trainer
 
@@ -136,6 +150,27 @@ def train(config) -> "lmforge.trainer.state.TrainState":
     print(f"Model: {config.model.path}")
     print(f"Adapter: {config.adapter.method} (rank={config.adapter.rank})")
     print()
+
+    # Resolve model (HF repo ID → local path)
+    print("Resolving model...")
+    resolved_model = resolve_model(
+        config.model.path,
+        revision=config.model.revision,
+        trust_remote_code=config.model.trust_remote_code,
+    )
+    print()
+
+    # Resolve tokenizer if separate path specified
+    if config.model.tokenizer_path:
+        print("Resolving tokenizer...")
+        resolved_tokenizer = resolve_model(
+            config.model.tokenizer_path,
+            trust_remote_code=config.model.trust_remote_code,
+        )
+        tokenizer_path = resolved_tokenizer.local_path
+        print()
+    else:
+        tokenizer_path = None
 
     # Create run directory
     from lmforge.trainer.checkpoint import CheckpointManager
@@ -151,7 +186,11 @@ def train(config) -> "lmforge.trainer.state.TrainState":
 
     # Load model and tokenizer
     print("Loading model and tokenizer...")
-    model, tokenizer = load_model(config.model.path, config.model.tokenizer_path, config.model.trust_remote_code)
+    model, tokenizer = load_model(
+        resolved_model.local_path,
+        tokenizer_path=tokenizer_path,
+        trust_remote_code=config.model.trust_remote_code,
+    )
     print(f"Model loaded: {type(model).__name__}")
     print()
 
@@ -167,12 +206,13 @@ def train(config) -> "lmforge.trainer.state.TrainState":
     print(f"Trainable parameters: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)")
     print()
 
-    # Load or prepare training data
+    # Load or prepare training data (use resolved tokenizer path)
     print("Loading training data...")
-    train_cache_meta = check_cache(config.data.train, config.model.path, config.data.cache_dir)
+    tokenizer_for_data = tokenizer_path if tokenizer_path else resolved_model.local_path
+    train_cache_meta = check_cache(config.data.train, tokenizer_for_data, config.data.cache_dir)
     if train_cache_meta is None:
         print(f"Cache miss for {config.data.train}. Running prepare...")
-        train_cache_meta = prepare(config.data.train, config.model.path, config.data.cache_dir)
+        train_cache_meta = prepare(config.data.train, tokenizer_for_data, config.data.cache_dir)
     else:
         print(f"Cache hit: {train_cache_meta['num_samples']} samples, {train_cache_meta['total_tokens']} tokens")
 
@@ -180,10 +220,10 @@ def train(config) -> "lmforge.trainer.state.TrainState":
 
     # Load validation data
     print("Loading validation data...")
-    val_cache_meta = check_cache(config.data.valid, config.model.path, config.data.cache_dir)
+    val_cache_meta = check_cache(config.data.valid, tokenizer_for_data, config.data.cache_dir)
     if val_cache_meta is None:
         print(f"Cache miss for {config.data.valid}. Running prepare...")
-        val_cache_meta = prepare(config.data.valid, config.model.path, config.data.cache_dir)
+        val_cache_meta = prepare(config.data.valid, tokenizer_for_data, config.data.cache_dir)
     else:
         print(f"Cache hit: {val_cache_meta['num_samples']} samples, {val_cache_meta['total_tokens']} tokens")
 
@@ -192,7 +232,12 @@ def train(config) -> "lmforge.trainer.state.TrainState":
 
     # Write manifest
     print("Writing manifest...")
-    manifest = write_manifest(run_dir, config.model_dump(), train_cache_meta["fingerprint"])
+    manifest = write_manifest(
+        run_dir,
+        config.model_dump(),
+        train_cache_meta["fingerprint"],
+        resolved_model.resolution_metadata,
+    )
     print(f"Manifest written: {run_dir / 'manifest.json'}")
     print()
 

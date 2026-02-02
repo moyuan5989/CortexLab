@@ -2,16 +2,29 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from transformers import AutoTokenizer
 
 
-def load_model(model_path: str, *, trust_remote_code: bool = False):
-    """Load a model and tokenizer from a HuggingFace repo ID or local path.
+def load_model(
+    model_path: str,
+    tokenizer_path: Optional[str] = None,
+    trust_remote_code: bool = False,
+):
+    """Load a model and tokenizer from a local path (post-resolution).
 
-    Returns (model, tokenizer) tuple.
+    Args:
+        model_path: Local path to model directory (already resolved)
+        tokenizer_path: Optional separate tokenizer path (already resolved)
+        trust_remote_code: Whether to trust remote code in model/tokenizer
 
-    Uses mlx_lm for model loading. If mlx_lm is not installed, raises ImportError
-    with installation instructions.
+    Returns:
+        (model, tokenizer) tuple
+
+    Note:
+        This function expects a local path. HF resolution should happen
+        before calling this function (see lmforge.models.resolve).
     """
     try:
         from mlx_lm import load as mlx_lm_load
@@ -23,9 +36,12 @@ def load_model(model_path: str, *, trust_remote_code: bool = False):
             "package lightweight. It's only needed when loading models for training."
         )
 
+    # Use tokenizer_path if provided, otherwise use model_path
+    tok_path = tokenizer_path if tokenizer_path is not None else model_path
+
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
-        model_path,
+        tok_path,
         trust_remote_code=trust_remote_code,
     )
 

@@ -1,0 +1,41 @@
+# LMForge Training Config - Hugging Face Model Example
+# This example shows how to fine-tune a model directly from Hugging Face Hub
+
+schema_version: 1
+
+model:
+  path: "Qwen/Qwen3-0.8B"           # Hugging Face model ID (auto-downloaded)
+  trust_remote_code: false
+  # revision: "a1b2c3d4e5f6"        # Optional: pin to specific commit for reproducibility
+
+adapter:
+  method: lora
+  preset: "attention-qv"              # Apply LoRA to Q and V projections
+  # num_layers: 16                   # Optional: apply to last 16 layers only
+  rank: 8
+  scale: 20.0
+  dropout: 0.0
+
+data:
+  train: "./data/train.jsonl"
+  valid: "./data/valid.jsonl"
+  cache_dir: "~/.lmforge/cache/preprocessed"
+  max_seq_length: 2048
+  mask_prompt: true
+
+training:
+  batch_size: 4
+  num_iters: 1000
+  learning_rate: 1.0e-5
+  optimizer: adam
+  grad_accumulation_steps: 1
+  seed: 42
+  steps_per_report: 10
+  steps_per_eval: 200
+  steps_per_save: 100
+  val_batches: 25
+  keep_last_n_checkpoints: 3
+
+runtime:
+  run_dir: "~/.lmforge/runs"
+  eager: false
