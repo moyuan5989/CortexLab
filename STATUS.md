@@ -8,8 +8,9 @@
 
 **M0: Scaffolding ✅ COMPLETE**
 **M1: Config System ✅ COMPLETE**
+**M2: Data Pipeline ✅ COMPLETE**
 
-Full repo scaffolding + config system with 14 passing tests.
+Full data preprocessing pipeline with 28 passing tests (14 M1 + 14 M2).
 
 ---
 
@@ -84,7 +85,7 @@ Full repo scaffolding + config system with 14 passing tests.
   - Adapter: `preset: attention-qv`, rank 8
   - Training: 1000 iters, batch size 4, Adam optimizer
 
-### 5. Tests (7 Files, 14 Passing + 24 Pending)
+### 5. Tests (7 Files, 28 Passing + 16 Pending)
 
 - ✅ `conftest.py` — Fixtures for `tmp_dir` and `sample_config_dict`
 - ✅ **`test_config.py` — 14 TESTS PASSING (M1 COMPLETE)**
@@ -97,7 +98,14 @@ Full repo scaffolding + config system with 14 passing tests.
   - TrainingParams validation (steps_per_save % grad_accumulation_steps)
   - LRScheduleConfig optional/required
   - RuntimeConfig defaults
-- ⏸️ `test_data.py` — 8 tests for M2 (all skip)
+- ✅ **`test_data.py` — 14 TESTS PASSING (M2 COMPLETE)**
+  - Format detection (chat, completions, text)
+  - Format validation with comprehensive error checking
+  - Fingerprinting (SHA-256 of data + tokenizer + template)
+  - Cache write/read with safetensors shards
+  - Cache hit detection
+  - Batching with correct shapes (B, T) and (B, 2)
+  - Padding to multiple of 32
 - ⏸️ `test_adapters.py` — 6 tests for M3 (all skip)
 - ⏸️ `test_trainer_infra.py` — 7 tests for M4 (all skip)
 - ⏸️ `test_integration.py` — 3 tests for M6 (all skip)
@@ -117,7 +125,7 @@ lmforge prepare --help   # ✅ Shows prepare options
 lmforge train --help     # ✅ Shows train options
 
 # Tests
-pytest tests/ -v         # ✅ 14 passed, 24 skipped
+pytest tests/ -v         # ✅ 28 passed, 16 skipped
 
 # Config loading
 python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_yaml('examples/train.yaml')"  # ✅ OK
@@ -125,7 +133,51 @@ python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_ya
 
 ---
 
-## What's Next: M2 — Data Pipeline (Prepare + Batching)
+## What's Been Accomplished in M2
+
+### Data Pipeline Implementation
+
+✅ **Format Detection** (`data/formats.py`):
+- `detect_format()` — auto-detects chat/completions/text from sample keys
+- `validate_samples()` — validates all samples, collects all errors before reporting
+- Comprehensive validation for all three formats
+
+✅ **Tokenization** (`data/preprocessing.py`):
+- `tokenize_dataset()` — applies chat template, computes prompt offsets
+- Chat format: re-encodes without last message to compute offset if `mask_prompt=True`
+- Completions format: wraps in chat format then processes
+- Text format: simple encode, offset=0, appends EOS if missing
+
+✅ **Caching** (`data/cache.py`):
+- `compute_fingerprint()` — SHA-256 of (data_hash + tokenizer_hash + template_hash)
+- `write_cache()` — writes safetensors shards (~500MB each) + meta.json
+- `read_cache()` — loads from cache
+- `check_cache()` — cache hit detection with integrity validation
+- Shard format matches V0_DESIGN_FREEZE.md §2.5 exactly
+
+✅ **Batching** (`data/batching.py`):
+- `iterate_batches()` — sort by length, fixed batch size, pad to multiple of 32
+- Returns `(batch_tokens, lengths)` per V0_DESIGN_FREEZE.md §2.2 contract
+- Batch contract verified: shapes (B, T) and (B, 2), dtype int32
+
+✅ **CLI + API** (`__init__.py`, `cli/prepare_cmd.py`):
+- `lmforge.prepare()` — full implementation with progress reporting
+- `lmforge prepare` CLI command working
+- Cache hit/miss detection, statistics reporting
+
+### Files Modified (M2)
+
+- `lmforge/data/formats.py` — 135 lines (format detection + validation)
+- `lmforge/data/preprocessing.py` — 124 lines (tokenization)
+- `lmforge/data/cache.py` — 190 lines (caching + fingerprinting)
+- `lmforge/data/batching.py` — 88 lines (batching)
+- `lmforge/__init__.py` — 117 lines (`prepare()` implementation)
+- `lmforge/cli/prepare_cmd.py` — 23 lines (CLI handler)
+- `tests/test_data.py` — 254 lines (14 comprehensive tests)
+
+---
+
+## What's Next: M3 — Model Loading + Adapters
 
 **Target**: Implement data preprocessing, caching, and batching.
 
@@ -180,8 +232,8 @@ python -c "from lmforge.config import TrainingConfig; c = TrainingConfig.from_ya
 |-----------|--------|------------------|
 | **M0: Scaffolding** | ✅ **COMPLETE** | 39 files, package installable, all verifications pass |
 | **M1: Config System** | ✅ **COMPLETE** | 14 tests passing, all validators working |
-| **M2: Data Pipeline** | 🎯 **NEXT** | Format detection, tokenization, caching, batching |
-| **M3: Model + Adapters** | ⏸️ Pending | Model loading, glob targeting, LoRA implementation |
+| **M2: Data Pipeline** | ✅ **COMPLETE** | 14 tests passing, `lmforge prepare` working |
+| **M3: Model + Adapters** | 🎯 **NEXT** | Model loading, glob targeting, LoRA implementation |
 | **M4: Trainer Infra** | ⏸️ Pending | Optimizer, checkpoints, callbacks, metrics |
 | **M5: Trainer + Run** | ⏸️ Pending | Full training loop, run management, manifest |
 | **M6: Integration** | ⏸️ Pending | End-to-end tests, resume validation |
