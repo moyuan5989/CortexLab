@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import time
 from functools import partial
 from threading import Event
@@ -152,11 +153,19 @@ class Trainer:
         steps_since_report = 0
         report_start_time = time.perf_counter()
 
-        # Main training loop
+        # Calculate batches per epoch for epoch tracking
+        num_samples = len(self.train_dataset)
+        batches_per_epoch = max(1, num_samples // self.config.training.batch_size)
+
+        # Main training loop - cycle infinitely through batches
+        batch_iterator = itertools.cycle(iterate_batches(self.train_dataset, self.config))
+
         for it, (batch, lengths) in zip(
             range(1, self.config.training.num_iters + 1),
-            iterate_batches(self.train_dataset, self.config),
+            batch_iterator,
         ):
+            # Update epoch count
+            self.state.epoch = (it - 1) // batches_per_epoch
             do_update = (it % grad_accum_steps == 0)
 
             # Evaluate at step 1, every steps_per_eval, and final step

@@ -21,6 +21,9 @@ def iterate_batches(dataset, config):
     1. Sort samples by length (descending) for efficient batching
     2. Group into fixed-size batches
     3. Pad to nearest multiple of 32 within each batch
+
+    Note: This iterates once through the dataset (one epoch). Use itertools.cycle
+    in the training loop to repeat for multiple epochs.
     """
     batch_size = config.training.batch_size
     max_seq_length = config.data.max_seq_length
