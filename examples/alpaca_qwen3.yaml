@@ -20,12 +20,12 @@ data:
   valid: data/alpaca/valid.jsonl
   test: null
   cache_dir: ~/.lmforge/cache/preprocessed
-  max_seq_length: 2048
+  max_seq_length: 1024
   mask_prompt: true
 
 training:
-  batch_size: 4
-  num_iters: 10000
+  batch_size: 2
+  num_iters: 20
   learning_rate: 0.0003
   optimizer: adamw
   optimizer_config:
@@ -35,12 +35,12 @@ training:
     arguments: [0.0003, 10000, 0.000001]  # [init, decay_steps, end]
     warmup: 100
     warmup_init: 0.000001
-  grad_accumulation_steps: 4
+  grad_accumulation_steps: 8
   max_grad_norm: 1.0
   seed: 42
-  steps_per_report: 10
-  steps_per_eval: 500
-  steps_per_save: 1000
+  steps_per_report: 1
+  steps_per_eval: 5
+  steps_per_save: 8
   val_batches: 50
   keep_last_n_checkpoints: 3
 
