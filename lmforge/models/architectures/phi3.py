@@ -1,0 +1,266 @@
+"""Phi-3 model architecture for LMForge.
+
+Supports:
+- Phi-3-mini (3.8B)
+- Phi-3-small (7B)
+- Phi-3-medium (14B)
+
+Key differences from Llama:
+- Combined QKV projection (single matrix for queries, keys, values)
+- Partial RoPE application (via partial_rotary_factor)
+- SuScaled RoPE for long context (longrope/su types)
+
+Adapted from mlx-lm (MIT License):
+https://github.com/ml-explore/mlx-lm/blob/main/mlx_lm/models/phi3.py
+Copyright © 2023-2024 Apple Inc.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
+
+import mlx.core as mx
+import mlx.nn as nn
+
+from .._base import BaseModelArgs, create_attention_mask, scaled_dot_product_attention
+from .._base.activations import swiglu
+from .._base.rope import initialize_rope
+
+
+@dataclass
+class ModelArgs(BaseModelArgs):
+    """Phi-3 model configuration arguments."""
+
+    model_type: str
+    hidden_size: int
+    num_hidden_layers: int
+    intermediate_size: int
+    num_attention_heads: int
+    rms_norm_eps: float
+    vocab_size: int
+    num_key_value_heads: Optional[int] = None
+    rope_theta: float = 10000
+    rope_traditional: bool = False
+    rope_scaling: Optional[Dict[str, Union[float, List[float]]]] = None
+    partial_rotary_factor: float = 1.0
+    max_position_embeddings: int = 131072
+    original_max_position_embeddings: int = 4096
+    tie_word_embeddings: bool = False
+
+    def __post_init__(self):
+        if self.num_key_value_heads is None:
+            self.num_key_value_heads = self.num_attention_heads
+
+        if self.rope_scaling:
+            required_keys = {"long_factor", "type"}
+            if not all(key in self.rope_scaling for key in required_keys):
+                raise ValueError(f"rope_scaling must contain keys {required_keys}")
+
+            if self.rope_scaling["type"] not in ["longrope", "su", "linear"]:
+                print(
+                    "[WARNING] rope_scaling 'type' currently only supports 'linear', 'su', and 'longrope'; "
+                    "setting rope scaling to false."
+                )
+                self.rope_scaling = None
+
+
+class Attention(nn.Module):
+    """
+    Multi-head attention with Grouped Query Attention (GQA) support.
+
+    Phi-3 uses a combined QKV projection instead of separate Q/K/V projections.
+    This is more memory-efficient and can be faster on some hardware.
+    """
+
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+
+        dim = args.hidden_size
+        self.n_heads = n_heads = args.num_attention_heads
+        assert args.num_key_value_heads is not None
+        self.n_kv_heads = n_kv_heads = args.num_key_value_heads
+        self.num_hidden_layers = args.num_hidden_layers
+
+        self.head_dim = head_dim = args.hidden_size // n_heads
+        self.scale = head_dim**-0.5
+
+        # Combined QKV projection (Phi-3 specific)
+        op_size = n_heads * head_dim + 2 * (n_kv_heads * head_dim)
+        self.qkv_proj = nn.Linear(dim, op_size, bias=False)
+        self.o_proj = nn.Linear(n_heads * head_dim, dim, bias=False)
+
+        # Partial RoPE: only apply to part of the head dimension
+        rope_dim = int(head_dim * args.partial_rotary_factor)
+
+        # Initialize RoPE (handles longrope/su and linear scaling)
+        self.rope = initialize_rope(
+            rope_dim,
+            args.rope_theta,
+            args.rope_traditional,
+            args.rope_scaling,
+            args.max_position_embeddings,
+            args.original_max_position_embeddings,
+        )
+
+    def __call__(
+        self,
+        x: mx.array,
+        mask: Optional[mx.array] = None,
+        cache: Optional[Any] = None,
+    ) -> mx.array:
+        B, L, D = x.shape
+
+        # Combined QKV projection, then split
+        qkv = self.qkv_proj(x)
+        query_pos = self.n_heads * self.head_dim
+        queries, keys, values = mx.split(
+            qkv, [query_pos, query_pos + self.n_kv_heads * self.head_dim], axis=-1
+        )
+
+        # Reshape for attention computation
+        queries = queries.reshape(B, L, self.n_heads, -1).transpose(0, 2, 1, 3)
+        keys = keys.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
+        values = values.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
+
+        # Apply rotary position embeddings
+        if cache is not None:
+            queries = self.rope(queries, offset=cache.offset)
+            keys = self.rope(keys, offset=cache.offset)
+            keys, values = cache.update_and_fetch(keys, values)
+        else:
+            queries = self.rope(queries)
+            keys = self.rope(keys)
+
+        output = scaled_dot_product_attention(
+            queries, keys, values, cache=cache, scale=self.scale, mask=mask
+        )
+        output = output.transpose(0, 2, 1, 3).reshape(B, L, -1)
+        return self.o_proj(output)
+
+
+class MLP(nn.Module):
+    """
+    Feed-forward network with SwiGLU activation.
+
+    Phi-3 combines gate and up projections into a single matrix for efficiency.
+    """
+
+    def __init__(self, dim: int, hidden_dim: int):
+        super().__init__()
+        # Combined gate + up projection
+        self.gate_up_proj = nn.Linear(dim, 2 * hidden_dim, bias=False)
+        self.down_proj = nn.Linear(hidden_dim, dim, bias=False)
+
+    def __call__(self, x: mx.array) -> mx.array:
+        x = self.gate_up_proj(x)
+        gate, x = mx.split(x, 2, axis=-1)
+        return self.down_proj(swiglu(gate, x))
+
+
+class TransformerBlock(nn.Module):
+    """Single transformer layer with attention and MLP."""
+
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+        self.num_attention_heads = args.num_attention_heads
+        self.hidden_size = args.hidden_size
+        self.self_attn = Attention(args)
+        self.mlp = MLP(args.hidden_size, args.intermediate_size)
+        self.input_layernorm = nn.RMSNorm(args.hidden_size, eps=args.rms_norm_eps)
+        self.post_attention_layernorm = nn.RMSNorm(
+            args.hidden_size, eps=args.rms_norm_eps
+        )
+        self.args = args
+
+    def __call__(
+        self,
+        x: mx.array,
+        mask: Optional[mx.array] = None,
+        cache: Optional[Any] = None,
+    ) -> mx.array:
+        r = self.self_attn(self.input_layernorm(x), mask, cache)
+        h = x + r
+        r = self.mlp(self.post_attention_layernorm(h))
+        return h + r
+
+
+class Phi3Model(nn.Module):
+    """Phi-3 transformer backbone (embeddings + layers + norm)."""
+
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+        self.args = args
+        self.vocab_size = args.vocab_size
+        self.num_hidden_layers = args.num_hidden_layers
+        assert self.vocab_size > 0
+        self.embed_tokens = nn.Embedding(args.vocab_size, args.hidden_size)
+        self.layers = [
+            TransformerBlock(args=args) for _ in range(args.num_hidden_layers)
+        ]
+        self.norm = nn.RMSNorm(args.hidden_size, eps=args.rms_norm_eps)
+
+    def __call__(
+        self,
+        inputs: mx.array,
+        cache=None,
+    ):
+        h = self.embed_tokens(inputs)
+
+        if cache is None:
+            cache = [None] * len(self.layers)
+
+        mask = create_attention_mask(h, cache[0])
+
+        for layer, c in zip(self.layers, cache):
+            h = layer(h, mask, c)
+
+        return self.norm(h)
+
+
+class Model(nn.Module):
+    """
+    Phi-3 model for LMForge training.
+
+    This is the top-level model class that includes the language model head.
+    """
+
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+        self.model_type = args.model_type
+        self.model = Phi3Model(args)
+        if not args.tie_word_embeddings:
+            self.lm_head = nn.Linear(args.hidden_size, args.vocab_size, bias=False)
+        self.args = args
+
+    def __call__(
+        self,
+        inputs: mx.array,
+        cache=None,
+    ):
+        out = self.model(inputs, cache)
+        if self.args.tie_word_embeddings:
+            out = self.model.embed_tokens.as_linear(out)
+        else:
+            out = self.lm_head(out)
+        return out
+
+    def sanitize(self, weights: dict) -> dict:
+        """
+        Clean up weight dict before loading.
+
+        - Remove precomputed rotary frequencies
+        - Remove lm_head if using tied embeddings
+        """
+        # Remove unused precomputed rotary freqs
+        weights = {
+            k: v for k, v in weights.items() if "self_attn.rotary_emb.inv_freq" not in k
+        }
+        if self.args.tie_word_embeddings:
+            weights.pop("lm_head.weight", None)
+        return weights
+
+    @property
+    def layers(self):
+        """Access transformer layers for LoRA targeting."""
+        return self.model.layers

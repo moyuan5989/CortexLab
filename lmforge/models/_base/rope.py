@@ -191,6 +191,7 @@ def initialize_rope(
     traditional: bool,
     scaling_config: Optional[Dict] = None,
     max_position_embeddings: Optional[int] = None,
+    original_max_position_embeddings: Optional[int] = None,
 ) -> nn.Module:
     """
     Initialize the appropriate RoPE implementation based on config.
@@ -201,6 +202,7 @@ def initialize_rope(
         traditional: Use traditional RoPE formulation
         scaling_config: Optional scaling configuration dict
         max_position_embeddings: Maximum sequence length
+        original_max_position_embeddings: Original max position embeddings (for scaling)
 
     Returns:
         Initialized RoPE module
@@ -231,13 +233,20 @@ def initialize_rope(
         )
 
     elif rope_type in ["longrope", "su"]:
+        # Get original_max_position_embeddings from scaling_config or parameter
+        orig_max_pos = (
+            original_max_position_embeddings
+            or scaling_config.get("original_max_position_embeddings")
+        )
+        if orig_max_pos is None:
+            raise ValueError(
+                "original_max_position_embeddings must be provided for longrope/su scaling"
+            )
         return SuScaledRoPE(
             dims=dims,
             base=base,
             max_position_embeddings=max_position_embeddings,
-            original_max_position_embeddings=scaling_config[
-                "original_max_position_embeddings"
-            ],
+            original_max_position_embeddings=orig_max_pos,
             short_factor=scaling_config.get("short_factor", 1.0),
             long_factor=scaling_config.get("long_factor", 1.0),
         )

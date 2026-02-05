@@ -23,6 +23,7 @@ MODEL_REMAPPING = {
 # Maps model_type -> module path under lmforge.models.architectures
 SUPPORTED_ARCHITECTURES = {
     "llama": "lmforge.models.architectures.llama",
+    "phi3": "lmforge.models.architectures.phi3",
     "qwen3": "lmforge.models.architectures.qwen3",
 }
 
