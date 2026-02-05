@@ -1,36 +1,53 @@
-# Test configuration for Phi-3-mini-4k-instruct
-# Minimal config for testing model loading and forward pass
+schema_version: 1
 
-model: microsoft/Phi-3-mini-4k-instruct
+model:
+  path: microsoft/Phi-3-mini-4k-instruct
+  tokenizer_path: null
+  trust_remote_code: false
+  revision: null
 
-data:
-  train_path: data/alpaca-small/train.jsonl
-  val_path: data/alpaca-small/val.jsonl
-  mask_prompt: true
-
-adapters:
-  preset: attention-qv
+adapter:
+  method: lora
+  targets:
+    - "*.self_attn.qkv_proj"  # Combined QKV in Phi-3
+    - "*.self_attn.o_proj"
+  preset: null
+  num_layers: null
   rank: 8
   scale: 16.0
   dropout: 0.0
 
+data:
+  train: data/alpaca/train.jsonl
+  valid: data/alpaca/valid.jsonl
+  test: null
+  cache_dir: ~/.lmforge/cache/preprocessed
+  max_seq_length: 256  # Reduced for Phi-3-mini (3.8B params)
+  mask_prompt: true
+
 training:
-  batch_size: 2
-  grad_accumulation_steps: 2
-  max_seq_length: 512
-  num_iters: 10  # Just 10 steps for testing
-  steps_per_report: 5
-  steps_per_eval: 10
-  steps_per_save: 10
-  seed: 42
+  batch_size: 1
+  num_iters: 10
   learning_rate: 0.0001
+  optimizer: adamw
+  optimizer_config:
+    weight_decay: 0.01
   lr_schedule:
     name: cosine_decay
     arguments: [0.0001, 10, 0.00001]
     warmup: 2
     warmup_init: 0.00001
+  grad_accumulation_steps: 2
+  max_grad_norm: 1.0
+  seed: 42
+  steps_per_report: 5
+  steps_per_eval: 10
+  steps_per_save: 10
+  val_batches: 10
+  keep_last_n_checkpoints: 1
 
 runtime:
   run_dir: ~/.lmforge/runs
-  cache_dir: ~/.lmforge/cache
   eager: false
+  report_to: null
+  wandb_project: null
