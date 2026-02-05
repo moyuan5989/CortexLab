@@ -133,7 +133,7 @@ class Attention(nn.Module):
             keys = self.rope(keys)
 
         output = scaled_dot_product_attention(
-            queries, keys, values, cache=cache, scale=self.scale, mask=mask
+            queries, keys, values, scale=self.scale, mask=mask
         )
         output = output.transpose(0, 2, 1, 3).reshape(B, L, -1)
         return self.o_proj(output)

@@ -1,0 +1,36 @@
+# Test configuration for Phi-3-mini-4k-instruct
+# Minimal config for testing model loading and forward pass
+
+model: microsoft/Phi-3-mini-4k-instruct
+
+data:
+  train_path: data/alpaca-small/train.jsonl
+  val_path: data/alpaca-small/val.jsonl
+  mask_prompt: true
+
+adapters:
+  preset: attention-qv
+  rank: 8
+  scale: 16.0
+  dropout: 0.0
+
+training:
+  batch_size: 2
+  grad_accumulation_steps: 2
+  max_seq_length: 512
+  num_iters: 10  # Just 10 steps for testing
+  steps_per_report: 5
+  steps_per_eval: 10
+  steps_per_save: 10
+  seed: 42
+  learning_rate: 0.0001
+  lr_schedule:
+    name: cosine_decay
+    arguments: [0.0001, 10, 0.00001]
+    warmup: 2
+    warmup_init: 0.00001
+
+runtime:
+  run_dir: ~/.lmforge/runs
+  cache_dir: ~/.lmforge/cache
+  eager: false
