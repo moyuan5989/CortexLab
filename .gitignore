@@ -33,6 +33,13 @@ htmlcov/
 # LMForge runtime
 .lmforge/
 
+# Downloaded datasets (use scripts to regenerate)
+data/alpaca/
+data/dolly/
+data/oasst/
+data/*-small/
+data/*-test/
+
 # Distribution
 *.whl
 *.tar.gz
