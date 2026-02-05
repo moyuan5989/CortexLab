@@ -66,8 +66,8 @@ training:
   optimizer_config:
     weight_decay: 0.01
   lr_schedule:
-    name: cosine
-    arguments: []
+    name: cosine_decay
+    arguments: [3e-4, 10000, 1e-6]  # [init, decay_steps, end]
     warmup: 100
     warmup_init: 1e-6
   grad_accumulation_steps: 4
@@ -90,11 +90,33 @@ runtime:
 - Set to `null` for constant learning rate
 - Or use a dictionary for scheduled learning rate:
   ```yaml
+  # Cosine annealing (recommended)
   lr_schedule:
-    name: cosine  # or linear
-    arguments: []
-    warmup: 100       # warmup steps
-    warmup_init: 1e-6 # initial LR during warmup
+    name: cosine_decay
+    arguments: [3e-4, 10000, 1e-6]  # [init, decay_steps, end]
+    warmup: 100
+    warmup_init: 1e-6
+
+  # Linear decay
+  lr_schedule:
+    name: linear_schedule
+    arguments: [3e-4, 1e-6, 10000]  # [init, end, steps]
+    warmup: 100
+    warmup_init: 1e-6
+
+  # Step decay (drop by 0.5 every 2000 steps)
+  lr_schedule:
+    name: step_decay
+    arguments: [3e-4, 0.5, 2000]  # [init, decay_rate, decay_steps]
+    warmup: 100
+    warmup_init: 1e-6
+
+  # Exponential decay
+  lr_schedule:
+    name: exponential_decay
+    arguments: [3e-4, 0.95]  # [init, decay_rate]
+    warmup: 100
+    warmup_init: 1e-6
   ```
 
 ## Step 3: Prepare (Optional but Recommended)

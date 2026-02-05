@@ -31,8 +31,8 @@ training:
   optimizer_config:
     weight_decay: 0.01
   lr_schedule:
-    name: cosine
-    arguments: []
+    name: cosine_decay
+    arguments: [3e-4, 10000, 1e-6]  # [init, decay_steps, end]
     warmup: 100
     warmup_init: 1e-6
   grad_accumulation_steps: 4
