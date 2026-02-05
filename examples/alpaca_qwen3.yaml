@@ -30,7 +30,11 @@ training:
   optimizer: adamw
   optimizer_config:
     weight_decay: 0.01
-  lr_schedule: cosine
+  lr_schedule:
+    name: cosine
+    arguments: []
+    warmup: 100
+    warmup_init: 1e-6
   grad_accumulation_steps: 4
   max_grad_norm: 1.0
   seed: 42

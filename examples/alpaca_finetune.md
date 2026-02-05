@@ -65,7 +65,11 @@ training:
   optimizer: adamw
   optimizer_config:
     weight_decay: 0.01
-  lr_schedule: cosine
+  lr_schedule:
+    name: cosine
+    arguments: []
+    warmup: 100
+    warmup_init: 1e-6
   grad_accumulation_steps: 4
   max_grad_norm: 1.0
   seed: 42
@@ -81,6 +85,17 @@ runtime:
   report_to: null
   wandb_project: null
 ```
+
+**Note on lr_schedule**:
+- Set to `null` for constant learning rate
+- Or use a dictionary for scheduled learning rate:
+  ```yaml
+  lr_schedule:
+    name: cosine  # or linear
+    arguments: []
+    warmup: 100       # warmup steps
+    warmup_init: 1e-6 # initial LR during warmup
+  ```
 
 ## Step 3: Prepare (Optional but Recommended)
 
