@@ -1,0 +1,47 @@
+schema_version: 1
+
+model:
+  path: Qwen/Qwen3-0.6B
+  tokenizer_path: null
+  trust_remote_code: false
+  revision: null
+
+adapter:
+  method: lora
+  targets: null
+  preset: attention-qv
+  num_layers: null
+  rank: 16
+  scale: 32.0
+  dropout: 0.0
+
+data:
+  train: data/alpaca/train.jsonl
+  valid: data/alpaca/valid.jsonl
+  test: null
+  cache_dir: ~/.lmforge/cache/preprocessed
+  max_seq_length: 2048
+  mask_prompt: true
+
+training:
+  batch_size: 4
+  num_iters: 10000
+  learning_rate: 3e-4
+  optimizer: adamw
+  optimizer_config:
+    weight_decay: 0.01
+  lr_schedule: cosine
+  grad_accumulation_steps: 4
+  max_grad_norm: 1.0
+  seed: 42
+  steps_per_report: 10
+  steps_per_eval: 500
+  steps_per_save: 1000
+  val_batches: 50
+  keep_last_n_checkpoints: 3
+
+runtime:
+  run_dir: ~/.lmforge/runs
+  eager: false
+  report_to: null
+  wandb_project: null
