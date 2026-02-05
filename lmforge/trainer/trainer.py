@@ -197,7 +197,7 @@ class Trainer:
                     "learning_rate": float(self.optimizer.learning_rate),
                     "tokens_per_second": n_tokens / elapsed if elapsed > 0 else 0.0,
                     "trained_tokens": self.state.trained_tokens,
-                    "peak_memory_gb": mx.metal.get_peak_memory() / 1e9 if mx.metal.is_available() else 0.0,
+                    "peak_memory_gb": mx.get_peak_memory() / 1e9,
                 }
                 self.callbacks.on_step_end(self.state, metrics)
                 losses = 0.0
