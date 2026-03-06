@@ -1,112 +1,138 @@
 # LMForge
 
-**LoRA SFT Training Framework for MLX on Apple Silicon**
+**LoRA fine-tuning for MLX on Apple Silicon — with a browser-based Studio UI.**
 
-LMForge is a production-ready framework for fine-tuning large language models using LoRA (Low-Rank Adaptation) on Apple Silicon via MLX. It provides a simple, library-first API with automatic Hugging Face model loading, comprehensive checkpointing, and structured run management.
+[![PyPI](https://img.shields.io/pypi/v/lmforge)](https://pypi.org/project/lmforge/)
+[![Python](https://img.shields.io/pypi/pyversions/lmforge)](https://pypi.org/project/lmforge/)
+[![License](https://img.shields.io/github/license/moyuan5989/LMForge)](LICENSE)
+[![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/LMForge/test.yml?label=tests)](https://github.com/moyuan5989/LMForge/actions)
+
+LMForge is a framework for fine-tuning large language models on your Mac. It supports LoRA, QLoRA, DPO, sequence packing, and gradient checkpointing — all running natively on Apple Silicon via [MLX](https://github.com/ml-explore/mlx). A built-in browser UI (Studio) lets you launch training runs, monitor loss curves in real time, and test your models interactively.
 
 ## Features
 
-- **Automatic HF Model Loading** - Use `model.path: "Qwen/Qwen3-0.8B"` directly in your config
-- **LoRA Fine-Tuning** - Efficient adapter-based training with glob-based targeting
-- **Data Pipeline** - Auto-detection of chat/completions/text formats with caching
-- **Compiled Training** - MLX-compiled training loop with gradient accumulation
-- **Smart Checkpointing** - Atomic saves, retention policy, automatic resume
-- **Metrics Logging** - JSONL metrics + console output + optional WandB
-- **Offline Mode** - Full offline capability after first model download
-- **Library-First** - All operations callable as Python functions
+**Training**
+- LoRA and QLoRA (4-bit) fine-tuning with 67% memory reduction
+- DPO (Direct Preference Optimization) for alignment training
+- Sequence packing for 2-5x speedup on short sequences
+- Gradient checkpointing for 40-60% activation memory savings
+- Compiled training loop with gradient accumulation
+- Cosine, linear, step, and exponential LR schedules with warmup
+- Resume from any checkpoint
+
+**Models**
+- Llama 2/3 (all sizes)
+- Mistral (mapped to Llama architecture)
+- Qwen 2/3/3.5
+- Phi-3/4
+- Gemma 1/2/3 (1B-27B)
+- Automatic Hugging Face model downloading and caching
+
+**Studio UI**
+- Browser-based training dashboard
+- Real-time loss curves via WebSocket
+- Model library and dataset browser
+- Interactive playground for testing fine-tuned models
+
+**Data**
+- 20+ curated datasets across 7 categories (general, code, math, conversation, reasoning, safety, domain)
+- Auto-detection of chat, completions, text, and preference formats
+- Multi-dataset mixing with weighted sampling
+- Data validation with train/val overlap detection
+
+## Installation
+
+```bash
+# Core framework
+pip install lmforge
+
+# With Studio UI
+pip install "lmforge[studio]"
+
+# Everything (Studio + WandB logging)
+pip install "lmforge[all]"
+```
+
+Requires macOS with Apple Silicon (M1/M2/M3/M4) and Python 3.10+.
 
 ## Quick Start
 
-### Installation
+**1. Install and download a dataset:**
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/lmforge.git
-cd lmforge
-
-# Install with development dependencies
-pip install -e ".[dev]"
-
-# Optional: Install mlx-lm for model loading
-pip install mlx-lm
+pip install "lmforge[studio]"
+lmforge data catalog
+lmforge data download alpaca-cleaned --max-samples 5000
 ```
 
-### Fine-Tune a Model (HF Model ID)
-
-1. **Create a config file** (`train.yaml`):
+**2. Create a config file** (`train.yaml`):
 
 ```yaml
 schema_version: 1
 
 model:
-  path: "Qwen/Qwen3-0.8B"  # Hugging Face model ID
-  trust_remote_code: false
+  path: "Qwen/Qwen3-0.6B"
 
 adapter:
-  preset: "attention-qv"  # Apply LoRA to Q and V projections
+  preset: "attention-qv"
   rank: 8
-  scale: 20.0
+  scale: 16.0
 
 data:
-  train: "./data/train.jsonl"
-  valid: "./data/valid.jsonl"
+  train: "~/.lmforge/datasets/raw/alpaca-cleaned/data.jsonl"
+  valid: "~/.lmforge/datasets/raw/alpaca-cleaned/data.jsonl"
+  max_seq_length: 512
 
 training:
   batch_size: 4
-  num_iters: 1000
-  learning_rate: 1.0e-5
-  optimizer: adam
+  num_iters: 500
+  learning_rate: 1.0e-4
+  optimizer: adamw
   steps_per_save: 100
-  steps_per_eval: 200
+  steps_per_eval: 100
+  steps_per_report: 10
 ```
 
-2. **Prepare your data** (JSONL format):
-
-```jsonl
-{"messages": [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi there!"}]}
-{"messages": [{"role": "user", "content": "How are you?"}, {"role": "assistant", "content": "I'm doing well!"}]}
-```
-
-3. **Run training**:
+**3. Train:**
 
 ```bash
 lmforge train --config train.yaml
 ```
 
-On first run, LMForge will:
-- Automatically download `Qwen/Qwen3-0.8B` from Hugging Face
-- Cache it locally (uses standard HF cache)
-- Tokenize and cache your data
-- Apply LoRA adapters
-- Train the model
+LMForge downloads the model from Hugging Face on first run and caches it locally. All subsequent runs work offline.
 
-### Offline Mode
+## Studio UI
 
-After the first download, training works completely offline:
+Launch the browser-based dashboard:
 
 ```bash
-export HF_HUB_OFFLINE=1
-lmforge train --config train.yaml
+lmforge studio
+# Opens at http://127.0.0.1:8741
 ```
 
-### Pin a Specific Model Revision
+Studio provides:
+- **Dashboard** — Start new training runs, monitor active jobs
+- **Runs** — Browse past runs, compare loss curves
+- **Models** — View downloaded models, check sizes and architectures
+- **Datasets** — Browse and manage your datasets
+- **Playground** — Chat with your fine-tuned models interactively
 
-For reproducibility, pin to a specific commit hash:
+## CLI Reference
 
-```yaml
-model:
-  path: "Qwen/Qwen3-0.8B"
-  revision: "a1b2c3d4e5f6"  # Specific HF commit hash
-```
-
-### Using a Local Model
-
-You can also use a local model directory:
-
-```yaml
-model:
-  path: "/path/to/local/model"
-```
+| Command | Description |
+|---------|-------------|
+| `lmforge train --config FILE` | Run LoRA/QLoRA/DPO training |
+| `lmforge generate --model MODEL` | Generate text (or interactive chat without `--prompt`) |
+| `lmforge prepare --data FILE --model MODEL` | Pre-tokenize a dataset |
+| `lmforge studio` | Launch the browser-based Studio UI |
+| `lmforge data catalog` | Browse 20+ curated datasets |
+| `lmforge data download DATASET` | Download a dataset from the catalog |
+| `lmforge data import FILE --name NAME` | Import a local JSONL file |
+| `lmforge data inspect NAME` | Preview dataset samples |
+| `lmforge data stats NAME` | Show dataset statistics |
+| `lmforge data validate FILE` | Validate JSONL format and check for issues |
+| `lmforge data list` | List downloaded datasets |
+| `lmforge data delete NAME` | Delete a dataset |
 
 ## Library API
 
@@ -114,20 +140,191 @@ All CLI commands are backed by Python functions:
 
 ```python
 from lmforge import prepare, train
-
-# Prepare data (tokenization + caching)
-meta = prepare(
-    data_path="train.jsonl",
-    model="Qwen/Qwen3-0.8B",
-)
-
-# Train from config
 from lmforge.config import TrainingConfig
 
-config = TrainingConfig.from_yaml("train.yaml")
-final_state = train(config=config)
+# Pre-tokenize a dataset
+prepare(data_path="train.jsonl", model="Qwen/Qwen3-0.6B")
 
-print(f"Best validation loss: {final_state.best_val_loss:.4f}")
+# Train from a config file
+config = TrainingConfig.from_yaml("train.yaml")
+result = train(config=config)
+print(f"Best val loss: {result.best_val_loss:.4f}")
+```
+
+```python
+from lmforge import generate
+
+# Generate text with a fine-tuned adapter
+generate(
+    model="Qwen/Qwen3-0.6B",
+    adapter="~/.lmforge/runs/my-run/checkpoints/best",
+    prompt="Explain quantum computing in simple terms.",
+    temperature=0.7,
+    max_tokens=256,
+)
+```
+
+## Supported Models
+
+| Architecture | Model Families | Sizes |
+|-------------|---------------|-------|
+| Llama | Llama 2, Llama 3, Llama 3.1, Llama 3.2 | 1B - 70B |
+| Mistral | Mistral 7B, Mistral Nemo | 7B - 12B |
+| Qwen | Qwen 2, Qwen 2.5, Qwen 3, Qwen 3.5 | 0.6B - 72B |
+| Phi | Phi-3, Phi-3.5, Phi-4 | 3.8B - 14B |
+| Gemma | Gemma 1, Gemma 2, Gemma 3 | 1B - 27B |
+
+Models are auto-downloaded from Hugging Face on first use. Use any HF model ID (e.g., `meta-llama/Llama-3.2-1B`, `Qwen/Qwen3-0.6B`, `google/gemma-3-1b`).
+
+## Configuration
+
+Full training config with all options:
+
+```yaml
+schema_version: 1
+
+model:
+  path: "Qwen/Qwen3-0.6B"         # HF model ID or local path
+  revision: "abc123"                # Optional: pin to specific HF commit
+  quantization:                     # Optional: QLoRA (67% memory savings)
+    bits: 4
+    group_size: 64
+
+adapter:
+  preset: "attention-qv"           # attention-qv | attention-all | mlp | all-linear
+  # targets: ["*.q_proj", "*.v_proj"]  # Or use custom glob patterns
+  rank: 16
+  scale: 32.0
+  num_layers: 16                    # Optional: apply to last N layers only
+
+data:
+  train: "./train.jsonl"
+  valid: "./val.jsonl"
+  packing: false                    # Sequence packing (2-5x speedup)
+  max_seq_length: 2048
+  # sources:                        # Multi-dataset mixing
+  #   - name: "dataset-a"
+  #     weight: 0.7
+  #   - name: "dataset-b"
+  #     weight: 0.3
+
+training:
+  optimizer: adamw                  # adam | adamw | sgd | adafactor
+  learning_rate: 1.0e-5
+  num_iters: 1000
+  batch_size: 4
+  grad_accumulation_steps: 1
+  gradient_checkpointing: false     # 40-60% memory savings (slight overhead)
+  steps_per_save: 100
+  steps_per_eval: 200
+  steps_per_report: 10
+  max_grad_norm: 1.0
+  # training_type: dpo              # For DPO training
+  # dpo_beta: 0.1
+
+runtime:
+  run_dir: "~/.lmforge/runs"
+  seed: 42
+```
+
+## Data Formats
+
+LMForge auto-detects four JSONL formats:
+
+**Chat** — Multi-turn conversations (loss computed on assistant turns only):
+```json
+{"messages": [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi!"}]}
+```
+
+**Completions** — Prompt-completion pairs:
+```json
+{"prompt": "Translate to French: Hello", "completion": "Bonjour"}
+```
+
+**Text** — Raw text for continued pretraining:
+```json
+{"text": "The quick brown fox jumps over the lazy dog."}
+```
+
+**Preference** — For DPO alignment training:
+```json
+{"chosen": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "good"}], "rejected": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "bad"}]}
+```
+
+## Advanced Features
+
+### QLoRA (4-bit Quantization)
+
+Reduce memory usage by ~67% with minimal quality loss:
+
+```yaml
+model:
+  path: "meta-llama/Llama-3.2-3B"
+  quantization:
+    bits: 4
+    group_size: 64
+```
+
+### Sequence Packing
+
+Pack multiple short sequences into a single batch for 2-5x speedup:
+
+```yaml
+data:
+  packing: true
+  max_seq_length: 2048
+```
+
+### Gradient Checkpointing
+
+Trade compute for memory — saves 40-60% activation memory:
+
+```yaml
+training:
+  gradient_checkpointing: true
+```
+
+### DPO Training
+
+Train with Direct Preference Optimization using preference data:
+
+```yaml
+training:
+  training_type: dpo
+  dpo_beta: 0.1
+
+data:
+  train: "./preference_data.jsonl"  # Must use preference format
+```
+
+### Multi-Dataset Mixing
+
+Combine multiple datasets with weighted sampling:
+
+```yaml
+data:
+  sources:
+    - name: "general-chat"
+      weight: 0.6
+    - name: "code-instruct"
+      weight: 0.4
+  max_seq_length: 2048
+```
+
+### Data Validation
+
+Check your data for issues before training:
+
+```bash
+lmforge data validate train.jsonl --val val.jsonl
+```
+
+### Resume Training
+
+Resume from any checkpoint:
+
+```bash
+lmforge train --config train.yaml --resume ~/.lmforge/runs/{run_id}/checkpoints/step-0001000
 ```
 
 ## Run Artifacts
@@ -135,110 +332,24 @@ print(f"Best validation loss: {final_state.best_val_loss:.4f}")
 Every training run produces structured artifacts:
 
 ```
-~/.lmforge/runs/{YYYYMMDD-HHMMSS-sft-Qwen3-0.8B-a3f1}/
+~/.lmforge/runs/{run_id}/
 ├── config.yaml              # Frozen config snapshot
-├── manifest.json            # Full run metadata + model resolution
+├── manifest.json            # Run metadata + model resolution
 ├── environment.json         # Environment info
 ├── checkpoints/
-│   ├── step-0000100/       # Exactly 3 files per checkpoint
+│   ├── step-0000100/
 │   │   ├── adapters.safetensors
 │   │   ├── optimizer.safetensors
 │   │   └── state.json
 │   └── best -> step-0000500
 └── logs/
-    └── metrics.jsonl        # Training + eval metrics
+    └── metrics.jsonl
 ```
-
-## Resume Training
-
-```bash
-lmforge train --config train.yaml --resume ~/.lmforge/runs/{run_id}/checkpoints/step-0001000
-```
-
-## Data Formats
-
-LMForge auto-detects three JSONL formats:
-
-**Chat format:**
-```jsonl
-{"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
-```
-
-**Completions format:**
-```jsonl
-{"prompt": "...", "completion": "..."}
-```
-
-**Text format:**
-```jsonl
-{"text": "..."}
-```
-
-## Adapter Targeting
-
-LMForge uses glob patterns to target modules for LoRA:
-
-**Built-in presets:**
-- `attention-qv`: Q and V projections only
-- `attention-all`: All attention projections (Q, K, V, O)
-- `mlp`: MLP layers (gate, up, down)
-- `all-linear`: All attention + MLP layers
-
-**Custom targeting:**
-```yaml
-adapter:
-  targets:
-    - "*.self_attn.q_proj"
-    - "*.self_attn.v_proj"
-  rank: 8
-```
-
-**Target last N layers:**
-```yaml
-adapter:
-  preset: "attention-qv"
-  num_layers: 16  # Apply to last 16 layers only
-  rank: 8
-```
-
-## Model Resolution
-
-LMForge automatically resolves Hugging Face model IDs to local paths:
-
-1. **On first use**: Downloads from HF Hub, caches locally
-2. **Subsequent uses**: Uses cached version (no network access)
-3. **Revision pinning**: Records exact commit hash in manifest for reproducibility
-
-The resolution happens **before** training starts, ensuring:
-- No network access during training
-- Clear error messages for auth/network issues
-- Full offline capability after first download
-
-## Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run specific test suite
-pytest tests/test_resolve.py -v
-```
-
-## Architecture
-
-LMForge follows these design principles:
-
-- **Library-first** - All operations are Python functions; CLI is thin wrapper
-- **Frozen contracts** - Config schema, batch format, checkpoint layout are immutable
-- **Explicit targeting** - Glob patterns on module paths, no type-based scanning
-- **Tier-1 checkpointing** - Adapters + optimizer + state (state-consistent resume)
-- **Stateless LR schedules** - Pure functions of step number, no saved scheduler state
-- **Fail fast** - Validate all configs before loading models or data
-
-## License
-
-[Add your license here]
 
 ## Contributing
 
-[Add contribution guidelines]
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding standards, and how to submit changes.
+
+## License
+
+[MIT](LICENSE)
