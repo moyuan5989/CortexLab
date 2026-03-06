@@ -41,15 +41,15 @@ class DPOLoss:
         Returns:
             (loss, ntoks): DPO loss and total token count.
         """
-        chosen_logps, chosen_ntoks = self._sequence_logprobs(
+        chosen_logps, chosen_seq_ntoks, chosen_total = self._sequence_logprobs(
             model, chosen_ids, chosen_labels)
-        rejected_logps, rejected_ntoks = self._sequence_logprobs(
+        rejected_logps, rejected_seq_ntoks, rejected_total = self._sequence_logprobs(
             model, rejected_ids, rejected_labels)
 
         if self.reference_free:
-            # SimPO: use length-normalized log-probs directly
-            chosen_rewards = chosen_logps / chosen_ntoks
-            rejected_rewards = rejected_logps / rejected_ntoks
+            # SimPO: use per-sequence length-normalized log-probs
+            chosen_rewards = chosen_logps / mx.maximum(chosen_seq_ntoks, 1)
+            rejected_rewards = rejected_logps / mx.maximum(rejected_seq_ntoks, 1)
         else:
             # Standard DPO: log-ratio with reference model
             if ref_chosen_logps is None or ref_rejected_logps is None:
@@ -65,7 +65,7 @@ class DPOLoss:
         logits = self.beta * (chosen_rewards - rejected_rewards)
         loss = -nn.log_sigmoid(logits).mean()
 
-        ntoks = chosen_ntoks + rejected_ntoks
+        ntoks = chosen_total + rejected_total
         return loss, ntoks
 
     def _sequence_logprobs(self, model, input_ids, labels):
@@ -78,7 +78,10 @@ class DPOLoss:
             labels: Labels, shape (B, T). -100 = masked.
 
         Returns:
-            (logps, ntoks): Per-sequence sum of log-probs, shape (B,), and token count.
+            (logps, seq_ntoks, total_ntoks):
+                logps: Per-sequence sum of log-probs, shape (B,).
+                seq_ntoks: Per-sequence token counts, shape (B,).
+                total_ntoks: Total valid tokens (scalar).
         """
         logits = model(input_ids[:, :-1])
         targets = labels[:, 1:]
@@ -89,6 +92,7 @@ class DPOLoss:
 
         # Sum log-probs per sequence (masked)
         logps = (log_probs * mask).sum(axis=1)  # (B,)
-        ntoks = mask.sum()
+        seq_ntoks = mask.sum(axis=1)             # (B,) per-sequence counts
+        total_ntoks = mask.sum()                 # () total
 
-        return logps, ntoks
+        return logps, seq_ntoks, total_ntoks

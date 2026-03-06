@@ -170,11 +170,13 @@ class TestDPOLoss:
         input_ids = mx.array([[1, 2, 3, 4, 5]], dtype=mx.int32)
         labels = mx.array([[-100, -100, 3, 4, 5]], dtype=mx.int32)
 
-        logps, ntoks = loss_fn._sequence_logprobs(model, input_ids, labels)
-        mx.eval(logps, ntoks)
+        logps, seq_ntoks, total_ntoks = loss_fn._sequence_logprobs(model, input_ids, labels)
+        mx.eval(logps, seq_ntoks, total_ntoks)
 
-        assert logps.shape == (1,)  # One per sequence
-        assert logps.item() <= 0  # Log-probs are non-positive
+        assert logps.shape == (1,)       # One per sequence
+        assert seq_ntoks.shape == (1,)   # Per-sequence token counts
+        assert logps.item() <= 0         # Log-probs are non-positive
+        assert seq_ntoks.item() > 0      # At least some valid tokens
 
 
 # ── Data Format ─────────────────────────────────────────────────────────────
