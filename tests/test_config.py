@@ -11,6 +11,7 @@ from lmforge.config import (
     ModelConfig,
     AdapterConfig,
     DataConfig,
+    DataSourceConfig,
     TrainingParams,
     RuntimeConfig,
     LRScheduleConfig,
@@ -175,3 +176,71 @@ class TestRuntimeConfig:
         config = TrainingConfig(**config_no_runtime)
         assert config.runtime.run_dir == "~/.lmforge/runs"
         assert config.runtime.eager is False
+
+
+class TestDataSourceConfig:
+    def test_valid_path_source(self):
+        """Test valid data source with path."""
+        src = DataSourceConfig(path="./data.jsonl", weight=0.5)
+        assert src.path == "./data.jsonl"
+        assert src.weight == 0.5
+
+    def test_valid_dataset_source(self):
+        """Test valid data source with catalog dataset."""
+        src = DataSourceConfig(dataset="alpaca", weight=1.0)
+        assert src.dataset == "alpaca"
+
+    def test_both_path_and_dataset_raises(self):
+        """Test that specifying both path and dataset raises."""
+        with pytest.raises(ValidationError):
+            DataSourceConfig(path="./data.jsonl", dataset="alpaca")
+
+    def test_neither_path_nor_dataset_raises(self):
+        """Test that specifying neither path nor dataset raises."""
+        with pytest.raises(ValidationError):
+            DataSourceConfig(weight=1.0)
+
+    def test_zero_weight_raises(self):
+        """Test that zero weight raises."""
+        with pytest.raises(ValidationError):
+            DataSourceConfig(path="./data.jsonl", weight=0.0)
+
+    def test_negative_weight_raises(self):
+        """Test that negative weight raises."""
+        with pytest.raises(ValidationError):
+            DataSourceConfig(path="./data.jsonl", weight=-1.0)
+
+
+class TestDataConfigSources:
+    def test_train_or_sources_required(self):
+        """Test that either train or sources must be provided."""
+        with pytest.raises(ValidationError):
+            DataConfig(valid="./val.jsonl")
+
+    def test_train_and_sources_exclusive(self):
+        """Test that train and sources are mutually exclusive."""
+        with pytest.raises(ValidationError):
+            DataConfig(
+                train="./train.jsonl",
+                valid="./val.jsonl",
+                sources=[DataSourceConfig(path="./other.jsonl")],
+            )
+
+    def test_sources_config_valid(self):
+        """Test valid sources configuration."""
+        cfg = DataConfig(
+            valid="./val.jsonl",
+            sources=[
+                DataSourceConfig(path="./data1.jsonl", weight=0.6),
+                DataSourceConfig(dataset="alpaca", weight=0.4),
+            ],
+        )
+        assert cfg.sources is not None
+        assert len(cfg.sources) == 2
+        assert cfg.train is None
+
+    def test_single_train_still_works(self):
+        """Test backward-compatible single train path."""
+        cfg = DataConfig(train="./train.jsonl", valid="./val.jsonl")
+        assert cfg.train == "./train.jsonl"
+        assert cfg.sources is None

@@ -249,12 +249,31 @@ def train(config, resume: str | None = None) -> "lmforge.trainer.state.TrainStat
             ds = backend.load_tokenized(dataset_name, config.model.path)
             return dataset_name, ds
 
-    train_name, train_dataset = _load_or_prepare(config.data.train, "training")
+    # Multi-source mixing or single dataset
+    if config.data.sources:
+        from lmforge.data.mixing import MixedDatasetIterator
+
+        source_datasets = []
+        source_weights = []
+        for src in config.data.sources:
+            data_path = src.path or src.dataset
+            _, ds = _load_or_prepare(data_path, f"source ({data_path})")
+            source_datasets.append(ds)
+            source_weights.append(src.weight)
+
+        train_dataset = MixedDatasetIterator(
+            source_datasets, source_weights,
+            seed=config.training.seed,
+        )
+        train_name = "mixed"
+        train_fingerprint = "mixed"
+        print(f"Mixed dataset: {len(config.data.sources)} sources")
+    else:
+        train_name, train_dataset = _load_or_prepare(config.data.train, "training")
+        train_fingerprint = backend.compute_fingerprint(config.data.train, tokenizer)
+
     _, val_dataset = _load_or_prepare(config.data.valid, "validation")
     print()
-
-    # Compute fingerprint for manifest (backward compat)
-    train_fingerprint = backend.compute_fingerprint(config.data.train, tokenizer)
 
     # Write manifest
     print("Writing manifest...")

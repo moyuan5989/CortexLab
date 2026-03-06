@@ -73,17 +73,45 @@ class AdapterConfig(BaseModel):
         return self
 
 
+class DataSourceConfig(BaseModel):
+    """A single data source for dataset mixing."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: Optional[str] = None       # Local JSONL path
+    dataset: Optional[str] = None    # Catalog dataset ID
+    weight: float = 1.0              # Sampling weight
+
+    @model_validator(mode="after")
+    def validate_source(self) -> DataSourceConfig:
+        if self.path is None and self.dataset is None:
+            raise ValueError("DataSourceConfig must specify 'path' or 'dataset'.")
+        if self.path is not None and self.dataset is not None:
+            raise ValueError("Specify 'path' or 'dataset', not both.")
+        if self.weight <= 0:
+            raise ValueError(f"Weight must be positive, got {self.weight}.")
+        return self
+
+
 class DataConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    train: str
+    train: Optional[str] = None
     valid: str
     test: Optional[str] = None
-    dataset: Optional[str] = None   # Named dataset from catalog
-    mix: Optional[str] = None       # Named mix config (future)
+    dataset: Optional[str] = None          # Named dataset from catalog
+    sources: Optional[list[DataSourceConfig]] = None  # Multi-dataset mixing
     max_seq_length: int = 2048
     mask_prompt: bool = True
     packing: bool = False
+
+    @model_validator(mode="after")
+    def validate_data_source(self) -> DataConfig:
+        if self.train is None and self.sources is None:
+            raise ValueError("Must specify either 'train' or 'sources'.")
+        if self.train is not None and self.sources is not None:
+            raise ValueError("Specify 'train' or 'sources', not both.")
+        return self
 
 
 class TrainingParams(BaseModel):
