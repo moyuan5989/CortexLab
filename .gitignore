@@ -40,6 +40,15 @@ data/oasst/
 data/*-small/
 data/*-test/
 
+# Internal dev docs (not for distribution)
+internal/
+
+# Node.js
+node_modules/
+
+# Environment variables
+.env
+
 # Distribution
 *.whl
 *.tar.gz
