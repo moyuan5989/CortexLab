@@ -9,7 +9,7 @@ import type { LibraryModel } from '../api/types'
 type FitFilter = 'all' | 'fits' | 'recommended'
 type SortKey = 'size' | 'name'
 
-const ARCH_OPTIONS = ['all', 'qwen3', 'qwen2', 'llama', 'gemma2', 'gemma3', 'phi3', 'phi4'] as const
+const ARCH_OPTIONS = ['all', 'qwen3_5', 'qwen3', 'qwen2', 'llama', 'gemma2', 'gemma3', 'phi3', 'phi4'] as const
 
 export default function Models() {
   const { data: models, isLoading } = useModelLibrary()

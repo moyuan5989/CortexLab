@@ -267,12 +267,12 @@ class TestModelLibraryAPI:
     """Test /api/v2/models/library endpoint."""
 
     def test_list_library(self, client):
-        """GET /api/v2/models/library returns 17 models."""
+        """GET /api/v2/models/library returns 18 models."""
         resp = client.get("/api/v2/models/library")
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
-        assert len(data) == 17
+        assert len(data) == 18
 
     def test_library_entry_shape(self, client):
         """Each entry has all required fields including downloaded: bool."""

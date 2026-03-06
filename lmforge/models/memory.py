@@ -103,6 +103,16 @@ MODEL_PROFILES: dict[str, ModelProfile] = {
         num_params=8.0, hidden_dim=4096, num_layers=36,
         num_heads=32, vocab_size=151936,
     ),
+    "Qwen/Qwen3.5-0.8B": ModelProfile(
+        model_id="Qwen/Qwen3.5-0.8B", display_name="Qwen3.5 0.8B",
+        num_params=0.8, hidden_dim=1024, num_layers=28,
+        num_heads=16, vocab_size=151936,
+    ),
+    "Qwen/Qwen3.5-3B": ModelProfile(
+        model_id="Qwen/Qwen3.5-3B", display_name="Qwen3.5 3B",
+        num_params=3.0, hidden_dim=2048, num_layers=36,
+        num_heads=32, vocab_size=151936,
+    ),
     "Qwen/Qwen2.5-0.5B": ModelProfile(
         model_id="Qwen/Qwen2.5-0.5B", display_name="Qwen2.5 0.5B",
         num_params=0.5, hidden_dim=896, num_layers=24,
@@ -127,11 +137,6 @@ MODEL_PROFILES: dict[str, ModelProfile] = {
         model_id="meta-llama/Llama-3.1-8B", display_name="Llama 3.1 8B",
         num_params=8.0, hidden_dim=4096, num_layers=32,
         num_heads=32, vocab_size=128256,
-    ),
-    "meta-llama/Llama-3.3-70B": ModelProfile(
-        model_id="meta-llama/Llama-3.3-70B", display_name="Llama 3.3 70B",
-        num_params=70.0, hidden_dim=8192, num_layers=80,
-        num_heads=64, vocab_size=128256,
     ),
     "google/gemma-2-2b": ModelProfile(
         model_id="google/gemma-2-2b", display_name="Gemma 2 2B",

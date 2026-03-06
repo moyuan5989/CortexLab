@@ -8,6 +8,7 @@ from lmforge.studio.services.model_service import ModelService
 
 # Map model ID prefixes to architecture families
 _ARCH_MAP = {
+    "Qwen/Qwen3.5": "qwen3_5",
     "Qwen/Qwen3": "qwen3",
     "Qwen/Qwen2": "qwen2",
     "meta-llama": "llama",
