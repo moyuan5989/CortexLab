@@ -16,6 +16,7 @@ class PackedSequence:
     input_ids: list[int]
     labels: list[int]        # -100 at segment boundaries + prompt regions
     segment_ids: list[int]
+    num_segments: int = 1    # Cached segment count (avoids O(N) recount)
 
 
 def pack_sequences(
@@ -59,15 +60,11 @@ def pack_sequences(
         placed = False
         for j, remaining in enumerate(bin_remaining):
             if remaining >= length:
-                seg_id = _count_segments(bins[j])
+                seg_id = bins[j].num_segments
                 bins[j].input_ids.extend(input_ids)
-                # Mark the boundary between segments: the last token of the
-                # previous segment predicting the first token of the new segment
-                # should not contribute to loss. The labels already handle this
-                # via -100 masking from preprocessing, but we also need to mark
-                # boundaries in labels to prevent cross-segment prediction.
                 bins[j].labels.extend(labels)
                 bins[j].segment_ids.extend([seg_id] * length)
+                bins[j].num_segments += 1
                 bin_remaining[j] -= length
                 placed = True
                 break
@@ -78,18 +75,12 @@ def pack_sequences(
                 input_ids=list(input_ids),
                 labels=list(labels),
                 segment_ids=[0] * length,
+                num_segments=1,
             )
             bins.append(seq)
             bin_remaining.append(max_seq_length - length)
 
     return bins
-
-
-def _count_segments(packed: PackedSequence) -> int:
-    """Count the number of distinct segments in a packed sequence."""
-    if not packed.segment_ids:
-        return 0
-    return max(packed.segment_ids) + 1
 
 
 def _to_list(tokens) -> list:

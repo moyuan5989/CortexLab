@@ -30,7 +30,8 @@ class SFTLoss:
         ce = nn.losses.cross_entropy(logits, targets, reduction="none") * mask
         ntoks = mask.sum()
 
-        return ce.sum() / ntoks, ntoks
+        # Guard against zero valid tokens (all labels masked → 0/0 = NaN)
+        return ce.sum() / mx.maximum(ntoks, 1), ntoks
 
     def packed(self, model, input_ids, labels, segment_ids):
         """Compute cross-entropy loss for packed sequences.
@@ -58,7 +59,8 @@ class SFTLoss:
         ce = nn.losses.cross_entropy(logits, targets, reduction="none") * mask
         ntoks = mask.sum()
 
-        return ce.sum() / ntoks, ntoks
+        # Guard against zero valid tokens (all labels masked → 0/0 = NaN)
+        return ce.sum() / mx.maximum(ntoks, 1), ntoks
 
 
 # Module-level convenience functions for backward compatibility

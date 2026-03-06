@@ -76,43 +76,55 @@ def _tokenize_chat(
         # Build labels by finding assistant turn boundaries
         labels = [-100] * len(input_ids)
 
-        # Build up the conversation incrementally to find boundaries
-        for i, msg in enumerate(messages):
-            if msg["role"] != "assistant":
-                continue
-
-            # Tokenize messages[:i] with generation prompt to find where assistant starts
+        # Pre-compute cumulative token lengths to find boundaries in O(N)
+        # instead of O(N²) re-tokenizations per assistant turn.
+        # cum_lens[i] = len(tokenize(messages[:i], add_generation_prompt=False))
+        cum_lens = [0]  # cum_lens[0] = 0 tokens for empty prefix
+        for i in range(len(messages)):
             try:
-                prefix_tokens = tokenizer.apply_chat_template(
-                    messages[:i],
-                    tokenize=True,
-                    add_generation_prompt=True,
-                )
-                if hasattr(prefix_tokens, 'input_ids'):
-                    prefix_tokens = prefix_tokens.input_ids
-                elif hasattr(prefix_tokens, '__getitem__') and hasattr(prefix_tokens[0], 'ids'):
-                    prefix_tokens = prefix_tokens[0].ids
-                prefix_len = len(list(prefix_tokens))
-            except Exception:
-                prefix_len = 0
-
-            # Tokenize messages[:i+1] to find where assistant ends
-            try:
-                full_up_to = tokenizer.apply_chat_template(
+                toks_up_to = tokenizer.apply_chat_template(
                     messages[:i + 1],
                     tokenize=True,
                     add_generation_prompt=False,
                 )
-                if hasattr(full_up_to, 'input_ids'):
-                    full_up_to = full_up_to.input_ids
-                elif hasattr(full_up_to, '__getitem__') and hasattr(full_up_to[0], 'ids'):
-                    full_up_to = full_up_to[0].ids
-                end_len = len(list(full_up_to))
+                if hasattr(toks_up_to, 'input_ids'):
+                    toks_up_to = toks_up_to.input_ids
+                elif hasattr(toks_up_to, '__getitem__') and hasattr(toks_up_to[0], 'ids'):
+                    toks_up_to = toks_up_to[0].ids
+                cum_lens.append(len(list(toks_up_to)))
             except Exception:
-                end_len = len(input_ids)
+                cum_lens.append(cum_lens[-1])
 
-            # Mark assistant tokens as trainable
-            for j in range(prefix_len, min(end_len, len(input_ids))):
+        # For each assistant turn, also need the generation-prompt offset
+        # (tokens added between user message and assistant response).
+        # Compute once for the first assistant turn, reuse for others.
+        gen_prompt_offset = 0
+        for i, msg in enumerate(messages):
+            if msg["role"] == "assistant":
+                try:
+                    prefix_with_gen = tokenizer.apply_chat_template(
+                        messages[:i],
+                        tokenize=True,
+                        add_generation_prompt=True,
+                    )
+                    if hasattr(prefix_with_gen, 'input_ids'):
+                        prefix_with_gen = prefix_with_gen.input_ids
+                    elif hasattr(prefix_with_gen, '__getitem__') and hasattr(prefix_with_gen[0], 'ids'):
+                        prefix_with_gen = prefix_with_gen[0].ids
+                    gen_prompt_offset = len(list(prefix_with_gen)) - cum_lens[i]
+                except Exception:
+                    gen_prompt_offset = 0
+                break
+
+        # Mark assistant tokens as trainable using pre-computed boundaries
+        for i, msg in enumerate(messages):
+            if msg["role"] != "assistant":
+                continue
+            # Assistant start = tokens up to messages[:i] + generation prompt
+            start = cum_lens[i] + gen_prompt_offset
+            # Assistant end = tokens up to messages[:i+1]
+            end = cum_lens[i + 1]
+            for j in range(start, min(end, len(input_ids))):
                 labels[j] = input_ids[j]
 
     # Truncate

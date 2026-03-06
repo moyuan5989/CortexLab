@@ -38,9 +38,16 @@ def iterate_batches(dataset, config):
     - B is config.training.batch_size
     - T is padded to nearest multiple of 32, capped at config.data.max_seq_length
     - input_ids padded with 0, labels padded with -100
+
+    Supports both list datasets (sort-by-length) and iterators (streaming).
     """
     batch_size = config.training.batch_size
     max_seq_length = config.data.max_seq_length
+
+    # If dataset is an iterator (e.g., MixedDatasetIterator), use streaming path
+    if not hasattr(dataset, '__len__'):
+        yield from _iterate_batches_streaming(dataset, batch_size, max_seq_length)
+        return
 
     # Sort samples by length (descending) for efficient padding
     sorted_samples = sorted(
@@ -49,21 +56,18 @@ def iterate_batches(dataset, config):
         reverse=True,
     )
 
-    # Group into batches
+    # Group into batches (partial last batch is included with padding)
     for batch_start in range(0, len(sorted_samples), batch_size):
         batch_samples = sorted_samples[batch_start : batch_start + batch_size]
 
-        if len(batch_samples) < batch_size:
-            continue
-
-        # Find max length in this batch
-        max_len_in_batch = max(_get_length(s, "input_ids") for s in batch_samples)
+        # First element is longest (already sorted descending)
+        max_len_in_batch = _get_length(batch_samples[0], "input_ids")
 
         # Pad to nearest multiple of 32, capped at max_seq_length
         padded_length = _round_up_to_multiple(max_len_in_batch, 32)
         padded_length = min(padded_length, max_seq_length)
 
-        # Build batch arrays
+        # Build batch arrays (pad rows use 0 for input_ids, -100 for labels)
         batch_input_ids = np.zeros((batch_size, padded_length), dtype=np.int32)
         batch_labels = np.full((batch_size, padded_length), -100, dtype=np.int32)
 
@@ -101,9 +105,6 @@ def iterate_packed_batches(dataset, config):
 
     for batch_start in range(0, len(packed), batch_size):
         batch_packed = packed[batch_start : batch_start + batch_size]
-
-        if len(batch_packed) < batch_size:
-            continue
 
         max_len_in_batch = max(len(p.input_ids) for p in batch_packed)
 
@@ -150,9 +151,6 @@ def iterate_preference_batches(dataset, config):
     for batch_start in range(0, len(sorted_samples), batch_size):
         batch_samples = sorted_samples[batch_start : batch_start + batch_size]
 
-        if len(batch_samples) < batch_size:
-            continue
-
         # Find max length across both chosen and rejected
         max_len = 0
         for s in batch_samples:
@@ -188,6 +186,51 @@ def iterate_preference_batches(dataset, config):
             mx.array(rejected_ids, dtype=mx.int32),
             mx.array(rejected_labels, dtype=mx.int32),
         )
+
+
+def _iterate_batches_streaming(dataset_iter, batch_size, max_seq_length):
+    """Streaming batch iterator for dataset iterators (no sorting).
+
+    Collects batch_size samples from the iterator, pads, and yields.
+    Used for MixedDatasetIterator and other infinite iterators.
+    Partial last batch is included (padded rows have all -100 labels).
+    """
+    batch_samples = []
+    for sample in dataset_iter:
+        batch_samples.append(sample)
+        if len(batch_samples) < batch_size:
+            continue
+
+        yield _build_batch(batch_samples, batch_size, max_seq_length)
+        batch_samples = []
+
+    # Yield remaining partial batch
+    if batch_samples:
+        yield _build_batch(batch_samples, batch_size, max_seq_length)
+
+
+def _build_batch(batch_samples, batch_size, max_seq_length):
+    """Build a padded (input_ids, labels) batch from a list of samples."""
+    max_len_in_batch = max(_get_length(s, "input_ids") for s in batch_samples)
+    padded_length = _round_up_to_multiple(max_len_in_batch, 32)
+    padded_length = min(padded_length, max_seq_length)
+
+    batch_input_ids = np.zeros((batch_size, padded_length), dtype=np.int32)
+    batch_labels = np.full((batch_size, padded_length), -100, dtype=np.int32)
+
+    for i, sample in enumerate(batch_samples):
+        input_ids = _to_list(sample["input_ids"])
+        labels = _to_list(sample["labels"])
+        if len(input_ids) > max_seq_length:
+            input_ids = input_ids[:max_seq_length]
+            labels = labels[:max_seq_length]
+        batch_input_ids[i, :len(input_ids)] = input_ids
+        batch_labels[i, :len(labels)] = labels
+
+    return (
+        mx.array(batch_input_ids, dtype=mx.int32),
+        mx.array(batch_labels, dtype=mx.int32),
+    )
 
 
 def _round_up_to_multiple(value: int, multiple: int) -> int:
