@@ -1,10 +1,10 @@
-# LMForge Scripts
+# CortexLab Scripts
 
-Standalone scripts for working with LMForge. These are **not part of the lmforge package** - they're convenience tools for data preparation.
+Standalone scripts for working with CortexLab. These are **not part of the cortexlab package** - they're convenience tools for data preparation.
 
 ## download_hf_dataset.py
 
-Convert HuggingFace datasets to LMForge JSONL format.
+Convert HuggingFace datasets to CortexLab JSONL format.
 
 ### Installation
 
@@ -71,14 +71,14 @@ Creates two JSONL files in chat format:
 
 ### Next Steps
 
-After downloading, use with LMForge:
+After downloading, use with CortexLab:
 
 ```bash
 # Prepare (tokenize and cache)
-lmforge prepare --data data/train.jsonl --model Qwen/Qwen3-0.6B
+cortexlab prepare --data data/train.jsonl --model Qwen/Qwen3-0.6B
 
 # Train
-lmforge train --config train.yaml
+cortexlab train --config train.yaml
 ```
 
 ### Troubleshooting
@@ -130,7 +130,7 @@ To support a new dataset format, add a converter function to `download_hf_datase
 
 ```python
 def convert_my_format(example: dict) -> dict | None:
-    """Convert my dataset format to LMForge chat format."""
+    """Convert my dataset format to CortexLab chat format."""
     return {
         "messages": [
             {"role": "user", "content": example["question"]},

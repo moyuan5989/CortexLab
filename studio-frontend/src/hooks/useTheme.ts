@@ -36,7 +36,7 @@ function applyTheme(resolved: ResolvedTheme) {
 
 export function useThemeProvider(): ThemeContextValue {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem('lmforge-theme')
+    const stored = localStorage.getItem('cortexlab-theme')
     if (stored === 'dark' || stored === 'light' || stored === 'system') return stored
     return 'dark'
   })
@@ -44,7 +44,7 @@ export function useThemeProvider(): ThemeContextValue {
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => resolve(theme))
 
   const setTheme = useCallback((t: Theme) => {
-    localStorage.setItem('lmforge-theme', t)
+    localStorage.setItem('cortexlab-theme', t)
     setThemeState(t)
     const r = resolve(t)
     setResolvedTheme(r)

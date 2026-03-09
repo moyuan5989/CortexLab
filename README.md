@@ -1,13 +1,13 @@
-# LMForge
+# CortexLab
 
 **LoRA fine-tuning for MLX on Apple Silicon — with a browser-based Studio UI.**
 
-[![PyPI](https://img.shields.io/pypi/v/lmforge)](https://pypi.org/project/lmforge/)
-[![Python](https://img.shields.io/pypi/pyversions/lmforge)](https://pypi.org/project/lmforge/)
-[![License](https://img.shields.io/github/license/moyuan5989/LMForge)](LICENSE)
-[![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/LMForge/test.yml?label=tests)](https://github.com/moyuan5989/LMForge/actions)
+[![PyPI](https://img.shields.io/pypi/v/cortexlab)](https://pypi.org/project/cortexlab/)
+[![Python](https://img.shields.io/pypi/pyversions/cortexlab)](https://pypi.org/project/cortexlab/)
+[![License](https://img.shields.io/github/license/moyuan5989/CortexLab)](LICENSE)
+[![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/CortexLab/test.yml?label=tests)](https://github.com/moyuan5989/CortexLab/actions)
 
-LMForge is a framework for fine-tuning large language models on your Mac. It supports LoRA, QLoRA, DPO, sequence packing, and gradient checkpointing — all running natively on Apple Silicon via [MLX](https://github.com/ml-explore/mlx). A built-in browser UI (Studio) lets you launch training runs, monitor loss curves in real time, and test your models interactively.
+CortexLab is a framework for fine-tuning large language models on your Mac. It supports LoRA, QLoRA, DPO, sequence packing, and gradient checkpointing — all running natively on Apple Silicon via [MLX](https://github.com/ml-explore/mlx). A built-in browser UI (Studio) lets you launch training runs, monitor loss curves in real time, and test your models interactively.
 
 ## Features
 
@@ -44,13 +44,13 @@ LMForge is a framework for fine-tuning large language models on your Mac. It sup
 
 ```bash
 # Core framework
-pip install lmforge
+pip install cortexlab
 
 # With Studio UI
-pip install "lmforge[studio]"
+pip install "cortexlab[studio]"
 
 # Everything (Studio + WandB logging)
-pip install "lmforge[all]"
+pip install "cortexlab[all]"
 ```
 
 Requires macOS with Apple Silicon (M1/M2/M3/M4) and Python 3.10+.
@@ -60,9 +60,9 @@ Requires macOS with Apple Silicon (M1/M2/M3/M4) and Python 3.10+.
 **1. Install and download a dataset:**
 
 ```bash
-pip install "lmforge[studio]"
-lmforge data catalog
-lmforge data download alpaca-cleaned --max-samples 5000
+pip install "cortexlab[studio]"
+cortexlab data catalog
+cortexlab data download alpaca-cleaned --max-samples 5000
 ```
 
 **2. Create a config file** (`train.yaml`):
@@ -79,8 +79,8 @@ adapter:
   scale: 16.0
 
 data:
-  train: "~/.lmforge/datasets/raw/alpaca-cleaned/data.jsonl"
-  valid: "~/.lmforge/datasets/raw/alpaca-cleaned/data.jsonl"
+  train: "~/.cortexlab/datasets/raw/alpaca-cleaned/data.jsonl"
+  valid: "~/.cortexlab/datasets/raw/alpaca-cleaned/data.jsonl"
   max_seq_length: 512
 
 training:
@@ -96,17 +96,17 @@ training:
 **3. Train:**
 
 ```bash
-lmforge train --config train.yaml
+cortexlab train --config train.yaml
 ```
 
-LMForge downloads the model from Hugging Face on first run and caches it locally. All subsequent runs work offline.
+CortexLab downloads the model from Hugging Face on first run and caches it locally. All subsequent runs work offline.
 
 ## Studio UI
 
 Launch the browser-based dashboard:
 
 ```bash
-lmforge studio
+cortexlab studio
 # Opens at http://127.0.0.1:8741
 ```
 
@@ -121,26 +121,26 @@ Studio provides:
 
 | Command | Description |
 |---------|-------------|
-| `lmforge train --config FILE` | Run LoRA/QLoRA/DPO training |
-| `lmforge generate --model MODEL` | Generate text (or interactive chat without `--prompt`) |
-| `lmforge prepare --data FILE --model MODEL` | Pre-tokenize a dataset |
-| `lmforge studio` | Launch the browser-based Studio UI |
-| `lmforge data catalog` | Browse 20+ curated datasets |
-| `lmforge data download DATASET` | Download a dataset from the catalog |
-| `lmforge data import FILE --name NAME` | Import a local JSONL file |
-| `lmforge data inspect NAME` | Preview dataset samples |
-| `lmforge data stats NAME` | Show dataset statistics |
-| `lmforge data validate FILE` | Validate JSONL format and check for issues |
-| `lmforge data list` | List downloaded datasets |
-| `lmforge data delete NAME` | Delete a dataset |
+| `cortexlab train --config FILE` | Run LoRA/QLoRA/DPO training |
+| `cortexlab generate --model MODEL` | Generate text (or interactive chat without `--prompt`) |
+| `cortexlab prepare --data FILE --model MODEL` | Pre-tokenize a dataset |
+| `cortexlab studio` | Launch the browser-based Studio UI |
+| `cortexlab data catalog` | Browse 20+ curated datasets |
+| `cortexlab data download DATASET` | Download a dataset from the catalog |
+| `cortexlab data import FILE --name NAME` | Import a local JSONL file |
+| `cortexlab data inspect NAME` | Preview dataset samples |
+| `cortexlab data stats NAME` | Show dataset statistics |
+| `cortexlab data validate FILE` | Validate JSONL format and check for issues |
+| `cortexlab data list` | List downloaded datasets |
+| `cortexlab data delete NAME` | Delete a dataset |
 
 ## Library API
 
 All CLI commands are backed by Python functions:
 
 ```python
-from lmforge import prepare, train
-from lmforge.config import TrainingConfig
+from cortexlab import prepare, train
+from cortexlab.config import TrainingConfig
 
 # Pre-tokenize a dataset
 prepare(data_path="train.jsonl", model="Qwen/Qwen3-0.6B")
@@ -152,12 +152,12 @@ print(f"Best val loss: {result.best_val_loss:.4f}")
 ```
 
 ```python
-from lmforge import generate
+from cortexlab import generate
 
 # Generate text with a fine-tuned adapter
 generate(
     model="Qwen/Qwen3-0.6B",
-    adapter="~/.lmforge/runs/my-run/checkpoints/best",
+    adapter="~/.cortexlab/runs/my-run/checkpoints/best",
     prompt="Explain quantum computing in simple terms.",
     temperature=0.7,
     max_tokens=256,
@@ -223,13 +223,13 @@ training:
   # dpo_beta: 0.1
 
 runtime:
-  run_dir: "~/.lmforge/runs"
+  run_dir: "~/.cortexlab/runs"
   seed: 42
 ```
 
 ## Data Formats
 
-LMForge auto-detects four JSONL formats:
+CortexLab auto-detects four JSONL formats:
 
 **Chat** — Multi-turn conversations (loss computed on assistant turns only):
 ```json
@@ -316,7 +316,7 @@ data:
 Check your data for issues before training:
 
 ```bash
-lmforge data validate train.jsonl --val val.jsonl
+cortexlab data validate train.jsonl --val val.jsonl
 ```
 
 ### Resume Training
@@ -324,7 +324,7 @@ lmforge data validate train.jsonl --val val.jsonl
 Resume from any checkpoint:
 
 ```bash
-lmforge train --config train.yaml --resume ~/.lmforge/runs/{run_id}/checkpoints/step-0001000
+cortexlab train --config train.yaml --resume ~/.cortexlab/runs/{run_id}/checkpoints/step-0001000
 ```
 
 ## Run Artifacts
@@ -332,7 +332,7 @@ lmforge train --config train.yaml --resume ~/.lmforge/runs/{run_id}/checkpoints/
 Every training run produces structured artifacts:
 
 ```
-~/.lmforge/runs/{run_id}/
+~/.cortexlab/runs/{run_id}/
 ├── config.yaml              # Frozen config snapshot
 ├── manifest.json            # Run metadata + model resolution
 ├── environment.json         # Environment info

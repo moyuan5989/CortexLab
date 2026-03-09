@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lmforge.models._base import BaseModelArgs
-from lmforge.models.registry import (
+from cortexlab.models._base import BaseModelArgs
+from cortexlab.models.registry import (
     get_model_classes,
     is_supported,
     list_supported_architectures,
@@ -152,7 +152,7 @@ class TestModelInstantiation:
 
     def test_qwen3_model_instantiation(self):
         """Test that Qwen3 model can be instantiated."""
-        from lmforge.models.architectures.qwen3 import Model, ModelArgs
+        from cortexlab.models.architectures.qwen3 import Model, ModelArgs
 
         config = {
             "model_type": "qwen3",
@@ -178,7 +178,7 @@ class TestModelInstantiation:
 
     def test_llama_model_instantiation(self):
         """Test that Llama model can be instantiated."""
-        from lmforge.models.architectures.llama import Model, ModelArgs
+        from cortexlab.models.architectures.llama import Model, ModelArgs
 
         config = {
             "model_type": "llama",
@@ -201,7 +201,7 @@ class TestModelInstantiation:
 
     def test_model_has_layers_property(self):
         """Test that models expose layers property for LoRA targeting."""
-        from lmforge.models.architectures.qwen3 import Model, ModelArgs
+        from cortexlab.models.architectures.qwen3 import Model, ModelArgs
 
         config = {
             "model_type": "qwen3",
@@ -233,7 +233,7 @@ class TestLoaderFunctions:
 
     def test_load_config_file_not_found(self, tmp_path):
         """Test load_config raises FileNotFoundError for missing config."""
-        from lmforge.models.loader import load_config
+        from cortexlab.models.loader import load_config
 
         with pytest.raises(FileNotFoundError) as exc_info:
             load_config(tmp_path)
@@ -242,7 +242,7 @@ class TestLoaderFunctions:
 
     def test_load_config_success(self, tmp_path):
         """Test load_config successfully reads config.json."""
-        from lmforge.models.loader import load_config
+        from cortexlab.models.loader import load_config
 
         config_data = {"model_type": "qwen3", "hidden_size": 1024}
         config_path = tmp_path / "config.json"
@@ -253,7 +253,7 @@ class TestLoaderFunctions:
 
     def test_load_weights_file_not_found(self, tmp_path):
         """Test load_weights raises FileNotFoundError for missing weights."""
-        from lmforge.models.loader import load_weights
+        from cortexlab.models.loader import load_weights
 
         with pytest.raises(FileNotFoundError) as exc_info:
             load_weights(tmp_path)
@@ -266,7 +266,7 @@ class TestSanitization:
 
     def test_qwen3_sanitize_removes_lm_head_when_tied(self):
         """Test that Qwen3 sanitize removes lm_head when embeddings are tied."""
-        from lmforge.models.architectures.qwen3 import Model, ModelArgs
+        from cortexlab.models.architectures.qwen3 import Model, ModelArgs
 
         config = {
             "model_type": "qwen3",
@@ -298,7 +298,7 @@ class TestSanitization:
 
     def test_llama_sanitize_removes_rotary_emb(self):
         """Test that Llama sanitize removes rotary_emb.inv_freq."""
-        from lmforge.models.architectures.llama import Model, ModelArgs
+        from cortexlab.models.architectures.llama import Model, ModelArgs
 
         config = {
             "model_type": "llama",

@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from lmforge.models.resolve import is_hf_repo_id, resolve_model, ResolvedModel
+from cortexlab.models.resolve import is_hf_repo_id, resolve_model, ResolvedModel
 
 
 class TestHFRepoIDDetection:

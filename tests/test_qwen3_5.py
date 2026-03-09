@@ -6,8 +6,8 @@ import mlx.core as mx
 import mlx.nn as nn
 import pytest
 
-from lmforge.inference.cache import KVCache, RecurrentCache
-from lmforge.models.architectures.qwen3_5 import (
+from cortexlab.inference.cache import KVCache, RecurrentCache
+from cortexlab.models.architectures.qwen3_5 import (
     Attention,
     DecoderLayer,
     GatedDeltaNet,
@@ -18,7 +18,7 @@ from lmforge.models.architectures.qwen3_5 import (
     gated_delta_recurrence,
     gated_delta_chunkwise,
 )
-from lmforge.models.registry import get_model_classes, is_supported
+from cortexlab.models.registry import get_model_classes, is_supported
 
 
 # ---------------------------------------------------------------------------
@@ -835,7 +835,7 @@ class TestLoRATargeting:
 
     def test_mlp_preset_matches_all_layers(self):
         """MLP preset should match all 4 layers (both types have MLP)."""
-        from lmforge.adapters.targeting import resolve_targets
+        from cortexlab.adapters.targeting import resolve_targets
 
         model = _make_tiny_model()
         patterns = ["*.mlp.gate_proj", "*.mlp.up_proj", "*.mlp.down_proj"]
@@ -846,7 +846,7 @@ class TestLoRATargeting:
 
     def test_attention_preset_matches_only_full_attn(self):
         """Attention presets should only match full attention layers."""
-        from lmforge.adapters.targeting import resolve_targets
+        from cortexlab.adapters.targeting import resolve_targets
 
         model = _make_tiny_model()
         patterns = ["*.self_attn.q_proj", "*.self_attn.v_proj"]
@@ -859,7 +859,7 @@ class TestLoRATargeting:
 
     def test_custom_deltanet_targeting(self):
         """Custom patterns can target DeltaNet projections."""
-        from lmforge.adapters.targeting import resolve_targets
+        from cortexlab.adapters.targeting import resolve_targets
 
         model = _make_tiny_model()
         patterns = ["*.linear_attn.in_proj_qkv", "*.linear_attn.out_proj"]

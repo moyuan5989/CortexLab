@@ -13,7 +13,7 @@ class TestSaveAndLoad:
 
     def test_save_and_load_sft(self, tmp_path, monkeypatch):
         """Save SFT samples and load them back."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -34,7 +34,7 @@ class TestSaveAndLoad:
 
     def test_save_and_load_preference(self, tmp_path, monkeypatch):
         """Save preference samples and load them back."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -56,7 +56,7 @@ class TestSaveAndLoad:
 
     def test_empty_dataset_raises(self, tmp_path, monkeypatch):
         """Saving empty dataset should raise ValueError."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -69,7 +69,7 @@ class TestTokenizedExists:
 
     def test_exists_after_save(self, tmp_path, monkeypatch):
         """tokenized_exists returns True after save."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -83,7 +83,7 @@ class TestTokenizedExists:
 
     def test_not_exists_for_different_model(self, tmp_path, monkeypatch):
         """tokenized_exists returns False for a different model."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -99,7 +99,7 @@ class TestGetProcessedPath:
 
     def test_path_format(self):
         """Path should use -- to replace / in model ID."""
-        from lmforge.data.backend import get_processed_path
+        from cortexlab.data.backend import get_processed_path
 
         path = get_processed_path("my-data", "org/model-name")
         assert "my-data--org--model-name" in str(path)
@@ -107,7 +107,7 @@ class TestGetProcessedPath:
 
     def test_path_deterministic(self):
         """Same inputs should produce same path."""
-        from lmforge.data.backend import get_processed_path
+        from cortexlab.data.backend import get_processed_path
 
         p1 = get_processed_path("ds", "model/x")
         p2 = get_processed_path("ds", "model/x")
@@ -119,7 +119,7 @@ class TestMetadata:
 
     def test_meta_json_created(self, tmp_path, monkeypatch):
         """meta.json should be created alongside the dataset."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -147,7 +147,7 @@ class TestMetadata:
 
     def test_preference_meta(self, tmp_path, monkeypatch):
         """Preference dataset metadata should report format='preference'."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -174,7 +174,7 @@ class TestFingerprint:
 
     def test_fingerprint_format(self, tmp_path):
         """Fingerprint should start with 'sha256:' and be 71 chars."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         data_file = tmp_path / "test.jsonl"
         data_file.write_text('{"text": "sample"}\n')
@@ -190,7 +190,7 @@ class TestFingerprint:
 
     def test_same_inputs_same_fingerprint(self, tmp_path):
         """Same inputs should produce same fingerprint."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         data_file = tmp_path / "test.jsonl"
         data_file.write_text('{"text": "sample"}\n')
@@ -206,7 +206,7 @@ class TestFingerprint:
 
     def test_different_data_different_fingerprint(self, tmp_path):
         """Different data should produce different fingerprint."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         f1 = tmp_path / "a.jsonl"
         f1.write_text('{"text": "aaa"}\n')
@@ -228,14 +228,14 @@ class TestListProcessed:
 
     def test_empty_dir(self, tmp_path, monkeypatch):
         """Empty dir returns empty list."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
         assert backend.list_processed() == []
 
     def test_lists_saved_datasets(self, tmp_path, monkeypatch):
         """list_processed returns metadata for saved datasets."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -259,7 +259,7 @@ class TestDeleteProcessed:
 
     def test_delete_existing(self, tmp_path, monkeypatch):
         """Delete an existing processed dataset."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -273,7 +273,7 @@ class TestDeleteProcessed:
 
     def test_delete_nonexistent(self, tmp_path, monkeypatch):
         """Deleting non-existent dataset returns False."""
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
         assert not backend.delete_processed("nope", "m/1")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from lmforge.data.mixing import MixedDatasetIterator
+from cortexlab.data.mixing import MixedDatasetIterator
 
 
 class TestMixedDatasetIterator:

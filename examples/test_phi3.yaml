@@ -21,7 +21,7 @@ data:
   train: data/alpaca/train.jsonl
   valid: data/alpaca/valid.jsonl
   test: null
-  cache_dir: ~/.lmforge/cache/preprocessed
+  cache_dir: ~/.cortexlab/cache/preprocessed
   max_seq_length: 256  # Reduced for Phi-3-mini (3.8B params)
   mask_prompt: true
 
@@ -47,7 +47,7 @@ training:
   keep_last_n_checkpoints: 1
 
 runtime:
-  run_dir: ~/.lmforge/runs
+  run_dir: ~/.cortexlab/runs
   eager: false
   report_to: null
   wandb_project: null

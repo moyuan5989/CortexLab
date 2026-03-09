@@ -28,7 +28,7 @@ What actually happened. Include error messages or tracebacks if applicable.
 
 - macOS version:
 - Python version:
-- LMForge version (`pip show lmforge`):
+- CortexLab version (`pip show cortexlab`):
 - Apple Silicon chip (M1/M2/M3/M4):
 - MLX version:
 

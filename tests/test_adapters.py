@@ -6,14 +6,14 @@ import pytest
 import mlx.core as mx
 import mlx.nn as nn
 
-from lmforge.adapters.targeting import (
+from cortexlab.adapters.targeting import (
     PRESETS,
     get_patterns,
     named_modules,
     resolve_targets,
 )
-from lmforge.adapters.lora import LoRALinear, LoRAEmbedding, apply_lora
-from lmforge.config import AdapterConfig
+from cortexlab.adapters.lora import LoRALinear, LoRAEmbedding, apply_lora
+from cortexlab.config import AdapterConfig
 
 
 # Mock model for testing

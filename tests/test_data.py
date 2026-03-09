@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from lmforge.data.batching import iterate_batches
-from lmforge.data.formats import detect_format, validate_samples
+from cortexlab.data.batching import iterate_batches
+from cortexlab.data.formats import detect_format, validate_samples
 
 
 class TestFormatDetection:
@@ -91,7 +91,7 @@ class TestFormatValidation:
 class TestFingerprinting:
     def test_fingerprint_format(self, tmp_dir):
         """Test that fingerprint has correct format."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         data_file = tmp_dir / "test.jsonl"
         data_file.write_text('{"text": "sample"}\n')
@@ -109,7 +109,7 @@ class TestFingerprinting:
 
     def test_same_inputs_same_fingerprint(self, tmp_dir):
         """Test that same inputs produce same fingerprint."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         data_file = tmp_dir / "test.jsonl"
         data_file.write_text('{"text": "sample"}\n')
@@ -127,7 +127,7 @@ class TestFingerprinting:
 
     def test_different_data_different_fingerprint(self, tmp_dir):
         """Test that different data produces different fingerprint."""
-        from lmforge.data.backend import compute_fingerprint
+        from cortexlab.data.backend import compute_fingerprint
 
         file1 = tmp_dir / "test1.jsonl"
         file1.write_text('{"text": "sample1"}\n')
@@ -150,7 +150,7 @@ class TestFingerprinting:
 class TestBatching:
     def test_batch_shapes_match_contract(self, sample_config_dict):
         """Test that batch shapes match V2 contract: (B, T) input_ids + (B, T) labels."""
-        from lmforge.config import TrainingConfig
+        from cortexlab.config import TrainingConfig
 
         dataset = [
             {"input_ids": [1, 2, 3, 4, 5], "labels": [-100, -100, 3, 4, 5]},
@@ -177,7 +177,7 @@ class TestBatching:
 
     def test_labels_padded_with_minus_100(self, sample_config_dict):
         """Labels should be padded with -100 (not 0)."""
-        from lmforge.config import TrainingConfig
+        from cortexlab.config import TrainingConfig
         import numpy as np
 
         dataset = [
@@ -199,7 +199,7 @@ class TestBatching:
 
     def test_padding_to_multiple_of_32(self, sample_config_dict):
         """Test that sequences are padded to nearest multiple of 32."""
-        from lmforge.config import TrainingConfig
+        from cortexlab.config import TrainingConfig
 
         dataset = [
             {"input_ids": [1] * 37, "labels": [1] * 37},

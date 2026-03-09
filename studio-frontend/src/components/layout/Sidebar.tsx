@@ -36,7 +36,7 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-60 bg-surface-sidebar border-r border-subtle flex flex-col">
       <div className="px-5 py-5">
         <h1 className="text-lg font-bold tracking-tight text-heading">
-          LMForge <span className="text-indigo-400 font-normal text-sm">Studio</span>
+          CortexLab <span className="text-indigo-400 font-normal text-sm">Studio</span>
         </h1>
       </div>
 

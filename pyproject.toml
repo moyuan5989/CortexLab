@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lmforge"
+name = "cortexlab"
 version = "0.1.0"
 description = "LoRA fine-tuning framework for MLX on Apple Silicon with a browser-based Studio UI"
 license = "MIT"
@@ -53,18 +53,18 @@ dev = [
     "ruff>=0.4.0",
 ]
 all = [
-    "lmforge[studio,wandb]",
+    "cortexlab[studio,wandb]",
 ]
 
 [project.urls]
-Repository = "https://github.com/moyuan5989/LMForge"
-Issues = "https://github.com/moyuan5989/LMForge/issues"
+Repository = "https://github.com/moyuan5989/CortexLab"
+Issues = "https://github.com/moyuan5989/CortexLab/issues"
 
 [project.scripts]
-lmforge = "lmforge.cli.main:main"
+cortexlab = "cortexlab.cli.main:main"
 
 [tool.setuptools.packages.find]
-include = ["lmforge*"]
+include = ["cortexlab*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

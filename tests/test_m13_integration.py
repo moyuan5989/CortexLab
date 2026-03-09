@@ -11,8 +11,8 @@ import mlx.nn as nn
 import numpy as np
 import pytest
 
-from lmforge import prepare, train, generate
-from lmforge.config import (
+from cortexlab import prepare, train, generate
+from cortexlab.config import (
     TrainingConfig,
     ModelConfig,
     AdapterConfig,
@@ -21,7 +21,7 @@ from lmforge.config import (
     RuntimeConfig,
     QuantizationConfig,
 )
-from lmforge.inference.sampling import sample_next_token
+from cortexlab.inference.sampling import sample_next_token
 
 
 class TestMLXIndexingGotchas:
@@ -452,7 +452,7 @@ class TestStudioIntegration:
     def test_studio_optional_import(self):
         """Test that Studio is an optional dependency."""
         try:
-            from lmforge.studio.server import create_app
+            from cortexlab.studio.server import create_app
             # If import succeeds, verify it's a function that creates FastAPI app
             assert callable(create_app)
 
@@ -467,7 +467,7 @@ class TestStudioIntegration:
     def test_run_service_discovery(self, tmp_path):
         """Test RunService discovers runs from filesystem."""
         try:
-            from lmforge.studio.services.run_service import RunService
+            from cortexlab.studio.services.run_service import RunService
         except ImportError:
             pytest.skip("Studio not installed")
             return
@@ -496,7 +496,7 @@ class TestStudioIntegration:
     def test_model_service_discovery(self, tmp_path):
         """Test ModelService discovers models from HF cache."""
         try:
-            from lmforge.studio.services.model_service import ModelService
+            from cortexlab.studio.services.model_service import ModelService
         except ImportError:
             pytest.skip("Studio not installed")
             return
@@ -687,7 +687,7 @@ class TestArchitectureSupport:
 
     def test_supported_architectures_registry(self):
         """Test that registry includes all documented architectures."""
-        from lmforge.models.registry import is_supported, SUPPORTED_ARCHITECTURES
+        from cortexlab.models.registry import is_supported, SUPPORTED_ARCHITECTURES
 
         # Architectures documented as supported
         expected = ["llama", "qwen3", "phi3", "gemma", "gemma2", "mistral"]
@@ -702,7 +702,7 @@ class TestArchitectureSupport:
 
     def test_model_remapping(self):
         """Test that model remapping works (e.g., Mistral → Llama)."""
-        from lmforge.models.registry import SUPPORTED_ARCHITECTURES, MODEL_REMAPPING
+        from cortexlab.models.registry import SUPPORTED_ARCHITECTURES, MODEL_REMAPPING
 
         # Mistral remaps to llama
         assert "mistral" in MODEL_REMAPPING or "mistral" in SUPPORTED_ARCHITECTURES

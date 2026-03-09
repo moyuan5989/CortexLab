@@ -30,7 +30,7 @@ class TestResume:
 
     def test_validate_resume_missing_directory(self):
         """Validate resume raises for non-existent checkpoint."""
-        from lmforge import _validate_resume
+        from cortexlab import _validate_resume
 
         config = MagicMock()
         config.training.num_iters = 1000
@@ -40,7 +40,7 @@ class TestResume:
 
     def test_validate_resume_missing_files(self, tmp_path):
         """Validate resume raises when checkpoint files are missing."""
-        from lmforge import _validate_resume
+        from cortexlab import _validate_resume
 
         config = MagicMock()
         config.training.num_iters = 1000
@@ -57,7 +57,7 @@ class TestResume:
 
     def test_validate_resume_completed_training(self, tmp_path):
         """Validate resume raises when training is already complete."""
-        from lmforge import _validate_resume
+        from cortexlab import _validate_resume
 
         config = MagicMock()
         config.training.num_iters = 100
@@ -75,7 +75,7 @@ class TestResume:
 
     def test_validate_resume_unsupported_schema(self, tmp_path):
         """Validate resume raises for future schema versions."""
-        from lmforge import _validate_resume
+        from cortexlab import _validate_resume
 
         config = MagicMock()
         config.training.num_iters = 1000
@@ -93,7 +93,7 @@ class TestResume:
 
     def test_validate_resume_valid_checkpoint(self, tmp_path):
         """Validate resume passes for a valid checkpoint."""
-        from lmforge import _validate_resume
+        from cortexlab import _validate_resume
 
         config = MagicMock()
         config.training.num_iters = 1000
@@ -111,7 +111,7 @@ class TestResume:
 
     def test_trainer_accepts_initial_state(self):
         """Trainer constructor accepts an initial state for resume."""
-        from lmforge.trainer.state import TrainState
+        from cortexlab.trainer.state import TrainState
 
         state = TrainState(step=500, epoch=2, trained_tokens=100000,
                           best_val_loss=1.5, rng_seed=42)
@@ -123,12 +123,12 @@ class TestResume:
 
     def test_train_cmd_passes_resume(self):
         """CLI train command passes resume to train()."""
-        from lmforge.cli.train_cmd import run_train
+        from cortexlab.cli.train_cmd import run_train
         import argparse
 
         args = argparse.Namespace(config="train.yaml", resume="/path/to/ckpt")
 
-        with patch("lmforge.train") as mock_train:
+        with patch("cortexlab.train") as mock_train:
             mock_train.return_value = MagicMock(step=1000)
             run_train(args)
             mock_train.assert_called_once_with(config="train.yaml", resume="/path/to/ckpt")
@@ -143,7 +143,7 @@ class TestKVCache:
 
     def test_cache_initial_state(self):
         """New cache should have zero offset and no stored data."""
-        from lmforge.inference.cache import KVCache
+        from cortexlab.inference.cache import KVCache
 
         cache = KVCache()
         assert cache.offset == 0
@@ -152,7 +152,7 @@ class TestKVCache:
 
     def test_cache_update_and_fetch(self):
         """Cache should concatenate keys/values and track offset."""
-        from lmforge.inference.cache import KVCache
+        from cortexlab.inference.cache import KVCache
 
         cache = KVCache()
 
@@ -174,7 +174,7 @@ class TestKVCache:
 
     def test_cache_reset(self):
         """Cache reset should clear all state."""
-        from lmforge.inference.cache import KVCache
+        from cortexlab.inference.cache import KVCache
 
         cache = KVCache()
         k = mx.ones((1, 4, 3, 32))
@@ -187,7 +187,7 @@ class TestKVCache:
 
     def test_make_cache(self):
         """make_cache should create the right number of caches."""
-        from lmforge.inference.cache import make_cache
+        from cortexlab.inference.cache import make_cache
 
         caches = make_cache(12)
         assert len(caches) == 12
@@ -203,7 +203,7 @@ class TestSampling:
 
     def test_greedy_decoding(self):
         """Temperature 0 should return argmax."""
-        from lmforge.inference.sampling import sample_next_token
+        from cortexlab.inference.sampling import sample_next_token
 
         logits = mx.array([0.1, 0.2, 0.9, 0.3, 0.1])
         token = sample_next_token(logits, temperature=0.0)
@@ -212,7 +212,7 @@ class TestSampling:
 
     def test_greedy_is_deterministic(self):
         """Greedy decoding should always return the same result."""
-        from lmforge.inference.sampling import sample_next_token
+        from cortexlab.inference.sampling import sample_next_token
 
         logits = mx.array([0.1, 0.9, 0.2, 0.3])
         results = set()
@@ -226,7 +226,7 @@ class TestSampling:
 
     def test_temperature_affects_distribution(self):
         """Higher temperature should produce more diverse outputs."""
-        from lmforge.inference.sampling import sample_next_token
+        from cortexlab.inference.sampling import sample_next_token
 
         logits = mx.array([0.5, 0.3, 0.1, 0.05, 0.05])
         mx.random.seed(42)
@@ -243,7 +243,7 @@ class TestSampling:
 
     def test_top_p_filtering(self):
         """Top-p should filter out low-probability tokens."""
-        from lmforge.inference.sampling import _apply_top_p
+        from cortexlab.inference.sampling import _apply_top_p
 
         # Create logits where token 0 has 90% probability after softmax
         logits = mx.array([10.0, 1.0, 0.5, 0.1])
@@ -265,7 +265,7 @@ class TestInferenceEngine:
 
     def _make_tiny_model_and_tokenizer(self):
         """Create a tiny Llama-like model for testing."""
-        from lmforge.models.architectures.llama import Model, ModelArgs
+        from cortexlab.models.architectures.llama import Model, ModelArgs
 
         args = ModelArgs(
             model_type="llama",
@@ -290,7 +290,7 @@ class TestInferenceEngine:
 
     def test_generate_tokens_yields_ints(self):
         """generate_tokens should yield integer token IDs."""
-        from lmforge.inference.engine import generate_tokens
+        from cortexlab.inference.engine import generate_tokens
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
         prompt = [1, 2, 3]
@@ -305,7 +305,7 @@ class TestInferenceEngine:
 
     def test_generate_respects_max_tokens(self):
         """Generation should stop at max_tokens."""
-        from lmforge.inference.engine import generate_tokens
+        from cortexlab.inference.engine import generate_tokens
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
         # Set EOS to -1 so it never triggers
@@ -320,7 +320,7 @@ class TestInferenceEngine:
 
     def test_generate_stops_on_eos(self):
         """Generation should stop when EOS token is produced."""
-        from lmforge.inference.engine import generate_tokens
+        from cortexlab.inference.engine import generate_tokens
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
         # Set EOS to a common token so it triggers quickly
@@ -337,7 +337,7 @@ class TestInferenceEngine:
 
     def test_generate_result(self):
         """generate() should return a GenerationResult."""
-        from lmforge.inference.engine import generate, GenerationResult
+        from cortexlab.inference.engine import generate, GenerationResult
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
         tokenizer.encode = MagicMock(return_value=[1, 2, 3])
@@ -357,7 +357,7 @@ class TestInferenceEngine:
 
     def test_generate_requires_prompt_or_messages(self):
         """generate() should raise if neither prompt nor messages given."""
-        from lmforge.inference.engine import generate
+        from cortexlab.inference.engine import generate
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
 
@@ -366,7 +366,7 @@ class TestInferenceEngine:
 
     def test_generate_rejects_both_prompt_and_messages(self):
         """generate() should raise if both prompt and messages given."""
-        from lmforge.inference.engine import generate
+        from cortexlab.inference.engine import generate
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
 
@@ -376,7 +376,7 @@ class TestInferenceEngine:
 
     def test_greedy_generation_is_deterministic(self):
         """Greedy generation should produce identical outputs."""
-        from lmforge.inference.engine import generate_tokens
+        from cortexlab.inference.engine import generate_tokens
 
         model, tokenizer = self._make_tiny_model_and_tokenizer()
         tokenizer.eos_token_id = -1
@@ -402,7 +402,7 @@ class TestGemmaArchitecture:
 
     def _make_gemma_args(self, model_type="gemma", **overrides):
         """Create small Gemma args for testing."""
-        from lmforge.models.architectures.gemma import ModelArgs
+        from cortexlab.models.architectures.gemma import ModelArgs
 
         defaults = dict(
             model_type=model_type,
@@ -420,7 +420,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_forward_pass(self):
         """Gemma model should produce logits of correct shape."""
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args()
         model = Model(args)
@@ -432,7 +432,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_rms_norm_offset(self):
         """GemmaRMSNorm should use (1 + weight) scaling."""
-        from lmforge.models.architectures.gemma import GemmaRMSNorm
+        from cortexlab.models.architectures.gemma import GemmaRMSNorm
 
         norm = GemmaRMSNorm(4, eps=1e-6)
         mx.eval(norm.parameters())
@@ -451,7 +451,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_embedding_scaling(self):
         """Gemma should scale embeddings by sqrt(hidden_size)."""
-        from lmforge.models.architectures.gemma import GemmaModel, ModelArgs
+        from cortexlab.models.architectures.gemma import GemmaModel, ModelArgs
 
         args = self._make_gemma_args()
         backbone = GemmaModel(args)
@@ -473,7 +473,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_tied_embeddings(self):
         """Gemma should use tied embeddings when configured."""
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args(tie_word_embeddings=True)
         model = Model(args)
@@ -488,7 +488,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_untied_embeddings(self):
         """Gemma should support untied embeddings."""
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args(tie_word_embeddings=False)
         model = Model(args)
@@ -502,7 +502,7 @@ class TestGemmaArchitecture:
 
     def test_gemma2_soft_capping(self):
         """Gemma 2 should apply attention and final logit soft-capping."""
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args(
             model_type="gemma2",
@@ -523,7 +523,7 @@ class TestGemmaArchitecture:
 
     def test_gemma2_sliding_window_on_even_layers(self):
         """Gemma 2 sliding window should only apply to even layers."""
-        from lmforge.models.architectures.gemma import Attention
+        from cortexlab.models.architectures.gemma import Attention
 
         args = self._make_gemma_args(
             model_type="gemma2",
@@ -540,7 +540,7 @@ class TestGemmaArchitecture:
 
     def test_gemma2_post_norms(self):
         """Gemma 2 transformer blocks should have 4 norms."""
-        from lmforge.models.architectures.gemma import TransformerBlock
+        from cortexlab.models.architectures.gemma import TransformerBlock
 
         args = self._make_gemma_args(model_type="gemma2")
         block = TransformerBlock(args, layer_idx=0)
@@ -552,7 +552,7 @@ class TestGemmaArchitecture:
 
     def test_gemma1_no_post_norms(self):
         """Gemma 1 transformer blocks should only have 2 norms."""
-        from lmforge.models.architectures.gemma import TransformerBlock
+        from cortexlab.models.architectures.gemma import TransformerBlock
 
         args = self._make_gemma_args(model_type="gemma")
         block = TransformerBlock(args, layer_idx=0)
@@ -563,8 +563,8 @@ class TestGemmaArchitecture:
 
     def test_gemma_kv_cache(self):
         """Gemma should work with KV cache for generation."""
-        from lmforge.inference.cache import make_cache
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.inference.cache import make_cache
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args()
         model = Model(args)
@@ -589,8 +589,8 @@ class TestGemmaArchitecture:
 
     def test_gemma_lora_targeting(self):
         """LoRA should be applicable to Gemma attention modules."""
-        from lmforge.adapters.targeting import named_modules, resolve_targets
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.adapters.targeting import named_modules, resolve_targets
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args()
         model = Model(args)
@@ -603,7 +603,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_sanitize(self):
         """sanitize() should remove rotary_emb and lm_head if tied."""
-        from lmforge.models.architectures.gemma import Model
+        from cortexlab.models.architectures.gemma import Model
 
         args = self._make_gemma_args(tie_word_embeddings=True)
         model = Model(args)
@@ -621,7 +621,7 @@ class TestGemmaArchitecture:
 
     def test_gemma_from_dict(self):
         """ModelArgs.from_dict() should handle HF config keys."""
-        from lmforge.models.architectures.gemma import ModelArgs
+        from cortexlab.models.architectures.gemma import ModelArgs
 
         config = {
             "model_type": "gemma",
@@ -656,7 +656,7 @@ class TestRegistryGemma:
 
     def test_gemma_is_supported(self):
         """Gemma should be in the supported architectures."""
-        from lmforge.models.registry import is_supported
+        from cortexlab.models.registry import is_supported
 
         assert is_supported("gemma")
         assert is_supported("gemma2")
@@ -664,7 +664,7 @@ class TestRegistryGemma:
 
     def test_gemma_get_model_classes(self):
         """get_model_classes should return Gemma classes."""
-        from lmforge.models.registry import get_model_classes
+        from cortexlab.models.registry import get_model_classes
 
         Model, ModelArgs = get_model_classes({"model_type": "gemma"})
         assert Model.__name__ == "Model"
@@ -684,7 +684,7 @@ class TestCLI:
 
     def test_generate_command_registered(self):
         """generate command should be registered in CLI parser."""
-        from lmforge.cli.main import build_parser
+        from cortexlab.cli.main import build_parser
 
         parser = build_parser()
         # Parse --help for generate to verify it's registered
@@ -698,7 +698,7 @@ class TestCLI:
 
     def test_train_resume_argument(self):
         """train --resume should be parseable."""
-        from lmforge.cli.main import build_parser
+        from cortexlab.cli.main import build_parser
 
         parser = build_parser()
         args = parser.parse_args(["train", "--config", "test.yaml",
@@ -707,7 +707,7 @@ class TestCLI:
 
     def test_train_resume_default_none(self):
         """train --resume should default to None."""
-        from lmforge.cli.main import build_parser
+        from cortexlab.cli.main import build_parser
 
         parser = build_parser()
         args = parser.parse_args(["train", "--config", "test.yaml"])

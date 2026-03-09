@@ -55,7 +55,7 @@ def mock_run(tmp_runs_dir):
         yaml.dump(config, f)
 
     # Write manifest.json
-    manifest = {"schema_version": 1, "lmforge_version": "0.1.0"}
+    manifest = {"schema_version": 1, "cortexlab_version": "0.1.0"}
     with open(run_dir / "manifest.json", "w") as f:
         json.dump(manifest, f)
 
@@ -116,10 +116,10 @@ def tmp_cache_dir(tmp_path):
 @pytest.fixture
 def app(tmp_runs_dir, tmp_cache_dir):
     """Create a test FastAPI app with mock service configuration."""
-    from lmforge.studio.server import create_app
-    from lmforge.studio.api import datasets, runs
-    from lmforge.studio.services.dataset_service import DatasetService
-    from lmforge.studio.services.run_service import RunService
+    from cortexlab.studio.server import create_app
+    from cortexlab.studio.api import datasets, runs
+    from cortexlab.studio.services.dataset_service import DatasetService
+    from cortexlab.studio.services.run_service import RunService
 
     app = create_app(runs_dir=str(tmp_runs_dir))
 
@@ -141,12 +141,12 @@ def client(app):
 
 class TestRunService:
     def test_list_runs_empty(self, tmp_runs_dir):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         assert service.list_runs() == []
 
     def test_list_runs_with_run(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         runs = service.list_runs()
         assert len(runs) == 1
@@ -155,7 +155,7 @@ class TestRunService:
         assert runs[0]["num_iters"] == 100
 
     def test_get_run(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         run = service.get_run(mock_run)
         assert run is not None
@@ -165,12 +165,12 @@ class TestRunService:
         assert run["config"]["model"]["path"] == "test/model"
 
     def test_get_run_not_found(self, tmp_runs_dir):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         assert service.get_run("nonexistent") is None
 
     def test_get_metrics(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         metrics = service.get_metrics(mock_run)
         assert len(metrics["train"]) == 4
@@ -179,7 +179,7 @@ class TestRunService:
         assert metrics["eval"][-1]["val_loss"] == 1.7
 
     def test_get_checkpoints(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         checkpoints = service.get_checkpoints(mock_run)
         assert len(checkpoints) == 1
@@ -187,18 +187,18 @@ class TestRunService:
         assert checkpoints[0]["state"]["step"] == 100
 
     def test_delete_run(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         assert service.delete_run(mock_run) is True
         assert service.get_run(mock_run) is None
 
     def test_delete_run_not_found(self, tmp_runs_dir):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         assert service.delete_run("nonexistent") is False
 
     def test_infer_status_completed(self, tmp_runs_dir, mock_run):
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
         service = RunService(str(tmp_runs_dir))
         run = service.get_run(mock_run)
         # current_step == num_iters == 100 -> completed
@@ -206,7 +206,7 @@ class TestRunService:
 
     def test_infer_status_stopped(self, tmp_runs_dir):
         """A run with current_step < num_iters and old mtime -> stopped."""
-        from lmforge.studio.services.run_service import RunService
+        from cortexlab.studio.services.run_service import RunService
 
         run_id = "20260207-130000-sft-test-abcd"
         run_dir = tmp_runs_dir / run_id
@@ -239,12 +239,12 @@ class TestRunService:
 
 class TestModelService:
     def test_list_models_empty(self, tmp_path):
-        from lmforge.studio.services.model_service import ModelService
+        from cortexlab.studio.services.model_service import ModelService
         service = ModelService(str(tmp_path / "nonexistent"))
         assert service.list_models() == []
 
     def test_list_models_with_model(self, tmp_path):
-        from lmforge.studio.services.model_service import ModelService
+        from cortexlab.studio.services.model_service import ModelService
 
         # Create a mock HF cache structure
         model_dir = tmp_path / "models--test--model"
@@ -264,7 +264,7 @@ class TestModelService:
         assert models[0]["supported"] is True
 
     def test_get_model(self, tmp_path):
-        from lmforge.studio.services.model_service import ModelService
+        from cortexlab.studio.services.model_service import ModelService
 
         model_dir = tmp_path / "models--Qwen--Qwen3-0.8B"
         snapshot_dir = model_dir / "snapshots" / "abc123"
@@ -280,12 +280,12 @@ class TestModelService:
         assert model["architecture"] == "qwen3"
 
     def test_get_model_not_found(self, tmp_path):
-        from lmforge.studio.services.model_service import ModelService
+        from cortexlab.studio.services.model_service import ModelService
         service = ModelService(str(tmp_path))
         assert service.get_model("nonexistent/model") is None
 
     def test_list_supported_architectures(self, tmp_path):
-        from lmforge.studio.services.model_service import ModelService
+        from cortexlab.studio.services.model_service import ModelService
         service = ModelService(str(tmp_path))
         archs = service.list_supported_architectures()
         assert "llama" in archs
@@ -299,12 +299,12 @@ class TestModelService:
 
 class TestDatasetService:
     def test_list_datasets_empty(self, tmp_path):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(str(tmp_path / "nonexistent"))
         assert service.list_datasets() == []
 
     def test_list_datasets(self, tmp_cache_dir):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(datasets_dir=str(tmp_cache_dir))
         datasets = service.list_datasets()
         assert len(datasets) == 1
@@ -312,25 +312,25 @@ class TestDatasetService:
         assert datasets[0]["num_samples"] == 1000
 
     def test_get_dataset(self, tmp_cache_dir):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(datasets_dir=str(tmp_cache_dir))
         ds = service.get_dataset("train--test--model")
         assert ds is not None
         assert ds["total_tokens"] == 500000
 
     def test_get_dataset_not_found(self, tmp_cache_dir):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(datasets_dir=str(tmp_cache_dir))
         assert service.get_dataset("nonexistent") is None
 
     def test_delete_dataset(self, tmp_cache_dir):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(datasets_dir=str(tmp_cache_dir))
         assert service.delete_dataset("train--test--model") is True
         assert service.get_dataset("train--test--model") is None
 
     def test_delete_dataset_not_found(self, tmp_cache_dir):
-        from lmforge.studio.services.dataset_service import DatasetService
+        from cortexlab.studio.services.dataset_service import DatasetService
         service = DatasetService(datasets_dir=str(tmp_cache_dir))
         assert service.delete_dataset("nonexistent") is False
 
@@ -341,12 +341,12 @@ class TestDatasetService:
 
 class TestMetricsWatcher:
     def test_poll_empty(self, tmp_path):
-        from lmforge.studio.services.metrics_watcher import MetricsWatcher
+        from cortexlab.studio.services.metrics_watcher import MetricsWatcher
         watcher = MetricsWatcher(tmp_path / "metrics.jsonl")
         assert watcher.poll() == []
 
     def test_poll_new_entries(self, tmp_path):
-        from lmforge.studio.services.metrics_watcher import MetricsWatcher
+        from cortexlab.studio.services.metrics_watcher import MetricsWatcher
 
         metrics_path = tmp_path / "metrics.jsonl"
         # Create empty file first, then create watcher (starts at end)
@@ -367,7 +367,7 @@ class TestMetricsWatcher:
         assert watcher.poll() == []
 
     def test_poll_incremental(self, tmp_path):
-        from lmforge.studio.services.metrics_watcher import MetricsWatcher
+        from cortexlab.studio.services.metrics_watcher import MetricsWatcher
 
         metrics_path = tmp_path / "metrics.jsonl"
         metrics_path.touch()
@@ -387,7 +387,7 @@ class TestMetricsWatcher:
         assert entries[0]["step"] == 2
 
     def test_reset(self, tmp_path):
-        from lmforge.studio.services.metrics_watcher import MetricsWatcher
+        from cortexlab.studio.services.metrics_watcher import MetricsWatcher
 
         metrics_path = tmp_path / "metrics.jsonl"
         with open(metrics_path, "w") as f:
@@ -566,7 +566,7 @@ class TestTrainingWebSocket:
 class TestCLI:
     def test_studio_command_registered(self):
         """Verify 'studio' is a valid subcommand."""
-        from lmforge.cli.main import build_parser
+        from cortexlab.cli.main import build_parser
         parser = build_parser()
         args = parser.parse_args(["studio", "--port", "9999"])
         assert args.command == "studio"
@@ -574,7 +574,7 @@ class TestCLI:
         assert args.host == "127.0.0.1"
 
     def test_studio_default_args(self):
-        from lmforge.cli.main import build_parser
+        from cortexlab.cli.main import build_parser
         parser = build_parser()
         args = parser.parse_args(["studio"])
         assert args.port == 8741

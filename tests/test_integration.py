@@ -9,9 +9,9 @@ import mlx.core as mx
 import mlx.nn as nn
 import pytest
 
-from lmforge import prepare, train
-from lmforge.adapters.targeting import resolve_targets, get_patterns
-from lmforge.config import (
+from cortexlab import prepare, train
+from cortexlab.adapters.targeting import resolve_targets, get_patterns
+from cortexlab.config import (
     TrainingConfig,
     ModelConfig,
     AdapterConfig,

@@ -217,7 +217,7 @@ function MyDatasetsTab({
       <div className="text-center py-12">
         <p className="text-caption text-sm">
           No datasets downloaded yet. Browse the <span className="text-indigo-400">Catalog</span> tab
-          or use <code className="bg-surface-input px-1 rounded text-xs">lmforge data download</code>.
+          or use <code className="bg-surface-input px-1 rounded text-xs">cortexlab data download</code>.
         </p>
       </div>
     )

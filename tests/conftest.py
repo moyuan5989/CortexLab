@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for LMForge tests."""
+"""Shared pytest fixtures for CortexLab tests."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def sample_config_dict():
             "keep_last_n_checkpoints": 3,
         },
         "runtime": {
-            "run_dir": "~/.lmforge/runs",
+            "run_dir": "~/.cortexlab/runs",
             "eager": False,
         },
     }

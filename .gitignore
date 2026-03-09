@@ -30,8 +30,8 @@ Thumbs.db
 .coverage
 htmlcov/
 
-# LMForge runtime
-.lmforge/
+# CortexLab runtime
+.cortexlab/
 
 # Downloaded datasets (use scripts to regenerate)
 data/alpaca/

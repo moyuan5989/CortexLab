@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from lmforge.models.memory import (
+from cortexlab.models.memory import (
     HardwareProfile,
     MemoryEstimate,
     ModelProfile,

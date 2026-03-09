@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from lmforge.recipes.registry import Recipe, get_recipe, list_recipes
-from lmforge.recipes.auto_config import resolve_config
+from cortexlab.recipes.registry import Recipe, get_recipe, list_recipes
+from cortexlab.recipes.auto_config import resolve_config
 
 
 class TestRecipeRegistry:
@@ -140,7 +140,7 @@ class TestAutoConfig:
 
     def test_resolve_with_small_dataset(self):
         """Small dataset triggers auto-config rules."""
-        from lmforge.models.memory import HardwareProfile
+        from cortexlab.models.memory import HardwareProfile
 
         recipe = get_recipe("chat-sft")
         hw = HardwareProfile(total_memory_gb=64.0, training_budget_gb=48.0)
@@ -157,7 +157,7 @@ class TestAutoConfig:
 
     def test_resolve_with_low_memory(self):
         """Low memory triggers QLoRA auto-config."""
-        from lmforge.models.memory import HardwareProfile
+        from cortexlab.models.memory import HardwareProfile
 
         recipe = get_recipe("chat-sft")
         hw = HardwareProfile(total_memory_gb=12.0, training_budget_gb=9.0)

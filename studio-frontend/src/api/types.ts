@@ -1,4 +1,4 @@
-// API response types matching the LMForge Studio backend
+// API response types matching the CortexLab Studio backend
 
 export interface Run {
   id: string

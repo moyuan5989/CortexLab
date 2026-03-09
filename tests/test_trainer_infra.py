@@ -9,7 +9,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import pytest
 
-from lmforge.config import (
+from cortexlab.config import (
     TrainingConfig,
     TrainingParams,
     LRScheduleConfig,
@@ -18,10 +18,10 @@ from lmforge.config import (
     DataConfig,
     RuntimeConfig,
 )
-from lmforge.trainer.checkpoint import CheckpointManager
-from lmforge.trainer.optimizer import build_optimizer, build_scheduler
-from lmforge.trainer.state import TrainState
-from lmforge.logging.metrics import write_metrics_line
+from cortexlab.trainer.checkpoint import CheckpointManager
+from cortexlab.trainer.optimizer import build_optimizer, build_scheduler
+from cortexlab.trainer.state import TrainState
+from cortexlab.logging.metrics import write_metrics_line
 
 
 class MockModel(nn.Module):

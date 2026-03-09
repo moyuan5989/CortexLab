@@ -6,12 +6,12 @@ import mlx.core as mx
 import pytest
 from fastapi.testclient import TestClient
 
-from lmforge.studio.server import create_app
+from cortexlab.studio.server import create_app
 
 
 @pytest.fixture
 def app():
-    return create_app(runs_dir="/tmp/lmforge_test_v2_studio")
+    return create_app(runs_dir="/tmp/cortexlab_test_v2_studio")
 
 
 @pytest.fixture
@@ -317,7 +317,7 @@ class TestBackendMetadata:
     def test_save_tokenized_with_metadata(self, tmp_path, monkeypatch):
         """save_tokenized stores dataset_name and model_id in meta.json."""
         import json
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -334,7 +334,7 @@ class TestBackendMetadata:
     def test_save_tokenized_format_detection(self, tmp_path, monkeypatch):
         """save_tokenized detects SFT vs preference format."""
         import json
-        from lmforge.data import backend
+        from cortexlab.data import backend
 
         monkeypatch.setattr(backend, "DATASETS_DIR", str(tmp_path))
 
@@ -362,22 +362,22 @@ class TestNewArchitectures:
 
     def test_qwen2_in_registry(self):
         """Qwen2/Qwen2.5 is registered."""
-        from lmforge.models.registry import is_supported
+        from cortexlab.models.registry import is_supported
         assert is_supported("qwen2")
 
     def test_phi4_in_registry(self):
         """Phi-4 is registered."""
-        from lmforge.models.registry import is_supported
+        from cortexlab.models.registry import is_supported
         assert is_supported("phi4")
 
     def test_llama3_remapping(self):
         """llama3 remaps to llama."""
-        from lmforge.models.registry import is_supported
+        from cortexlab.models.registry import is_supported
         assert is_supported("llama3")
 
     def test_qwen2_model_instantiation(self):
         """Qwen2 model can be instantiated and forward pass works."""
-        from lmforge.models.architectures.qwen2 import Model, ModelArgs
+        from cortexlab.models.architectures.qwen2 import Model, ModelArgs
 
         args = ModelArgs(
             model_type="qwen2",
@@ -402,7 +402,7 @@ class TestNewArchitectures:
 
     def test_phi4_model_instantiation(self):
         """Phi-4 model can be instantiated and forward pass works."""
-        from lmforge.models.architectures.phi4 import Model, ModelArgs
+        from cortexlab.models.architectures.phi4 import Model, ModelArgs
 
         args = ModelArgs(
             model_type="phi4",
@@ -424,8 +424,8 @@ class TestNewArchitectures:
 
     def test_qwen2_lora_targeting(self):
         """LoRA patterns match Qwen2 modules."""
-        from lmforge.adapters.targeting import resolve_targets
-        from lmforge.models.architectures.qwen2 import Model, ModelArgs
+        from cortexlab.adapters.targeting import resolve_targets
+        from cortexlab.models.architectures.qwen2 import Model, ModelArgs
 
         args = ModelArgs(
             model_type="qwen2",
@@ -447,8 +447,8 @@ class TestNewArchitectures:
 
     def test_phi4_lora_targeting(self):
         """LoRA patterns match Phi-4 modules."""
-        from lmforge.adapters.targeting import resolve_targets
-        from lmforge.models.architectures.phi4 import Model, ModelArgs
+        from cortexlab.adapters.targeting import resolve_targets
+        from cortexlab.models.architectures.phi4 import Model, ModelArgs
 
         args = ModelArgs(
             model_type="phi4",
@@ -467,7 +467,7 @@ class TestNewArchitectures:
 
     def test_qwen2_sanitize(self):
         """Qwen2 sanitize removes rotary_emb weights."""
-        from lmforge.models.architectures.qwen2 import Model, ModelArgs
+        from cortexlab.models.architectures.qwen2 import Model, ModelArgs
 
         args = ModelArgs(
             model_type="qwen2",
@@ -497,7 +497,7 @@ class TestNewArchitectures:
 
     def test_list_architectures_includes_v2(self):
         """Architecture list includes V2 additions."""
-        from lmforge.models.registry import list_supported_architectures
+        from cortexlab.models.registry import list_supported_architectures
         archs = list_supported_architectures()
         assert "qwen2" in archs
         assert "phi4" in archs
@@ -511,14 +511,14 @@ class TestV2ContractPreservation:
 
     def test_checkpoint_format_unchanged(self):
         """Checkpoint still produces exactly 3 files."""
-        from lmforge.trainer.checkpoint import CheckpointManager
+        from cortexlab.trainer.checkpoint import CheckpointManager
         # CheckpointManager class still exists with same interface
         assert hasattr(CheckpointManager, "save")
         assert hasattr(CheckpointManager, "load")
 
     def test_batch_contract_v2(self):
         """V2 batch contract: (B, T) input_ids + (B, T) labels."""
-        from lmforge.data.batching import iterate_batches
+        from cortexlab.data.batching import iterate_batches
 
         dataset = [
             {"input_ids": list(range(10)), "labels": [-100, -100, -100] + list(range(3, 10))}
@@ -552,7 +552,7 @@ class TestV2ContractPreservation:
 
     def test_config_backward_compat(self):
         """V1 configs load without errors."""
-        from lmforge.config import TrainingConfig
+        from cortexlab.config import TrainingConfig
         import yaml
         import tempfile
 
@@ -574,11 +574,11 @@ class TestV2ContractPreservation:
 
     def test_loss_functions_accessible(self):
         """V1-style loss functions still accessible from trainer module."""
-        from lmforge.trainer.trainer import loss_fn, loss_fn_packed
+        from cortexlab.trainer.trainer import loss_fn, loss_fn_packed
         assert callable(loss_fn)
         assert callable(loss_fn_packed)
 
     def test_trainer_alias_works(self):
         """Trainer class (V1 name) is still importable."""
-        from lmforge.trainer.trainer import Trainer, SFTTrainer
+        from cortexlab.trainer.trainer import Trainer, SFTTrainer
         assert Trainer is SFTTrainer
