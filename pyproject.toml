@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cortexlab"
-version = "0.1.1"
-description = "LoRA fine-tuning framework for MLX on Apple Silicon with a browser-based Studio UI"
+version = "0.1.2"
+description = "Fine-tune, experiment with, and run LLMs locally on your Mac"
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -63,6 +63,12 @@ cortexlab = "cortexlab.cli.main:main"
 
 [tool.setuptools.packages.find]
 include = ["cortexlab*"]
+
+[tool.setuptools.package-data]
+cortexlab = [
+    "studio/frontend/**/*",
+    "recipes/built_in/*.yaml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -13,7 +13,7 @@ import sys
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cortexlab",
-        description="CortexLab — LoRA SFT training framework for MLX on Apple Silicon",
+        description="CortexLab — Fine-tune, experiment with, and run LLMs locally on your Mac",
     )
     parser.add_argument(
         "--version",

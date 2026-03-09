@@ -196,6 +196,5 @@ def run_server(host: str = "127.0.0.1", port: int = 8741, runs_dir: str = "~/.co
 
     app = create_app(runs_dir=runs_dir)
     print(f"CortexLab Studio starting on http://{host}:{port}")
-    print(f"API docs: http://{host}:{port}/docs")
     print(f"Runs directory: {Path(runs_dir).expanduser()}")
     uvicorn.run(app, host=host, port=port)
