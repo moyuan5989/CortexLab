@@ -20,7 +20,7 @@ cortexlab studio
 
 ## Why CortexLab?
 
-- **One command to start** — `pip install cortexlab && cortexlab studio`. No Docker, no config files, no environment setup.
+- **One command to start** — `pip install cortexlab && cortexlab studio`.
 - **Browser-based Studio UI** — Guided training wizard, real-time loss charts, model library with memory estimates, interactive playground.
 - **Runs on Apple Silicon** — Built on [MLX](https://github.com/ml-explore/mlx). Your data stays on your machine.
 - **Production training features** — QLoRA (67% memory reduction), sequence packing (2-5x speedup), gradient checkpointing, DPO alignment, compiled training loop.

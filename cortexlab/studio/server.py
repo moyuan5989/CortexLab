@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from cortexlab._version import __version__
 from cortexlab.studio.api import datasets, inference, models, runs, training
 from cortexlab.studio.api import config_schema, data_library, memory, queue, recipes
 from cortexlab.studio.services.metrics_watcher import MetricsWatcher
@@ -30,8 +31,8 @@ def create_app(runs_dir: str = "~/.cortexlab/runs") -> FastAPI:
     """
     app = FastAPI(
         title="CortexLab Studio",
-        description="Browser-based training UI for CortexLab",
-        version="2.0.0",
+        description="Fine-tune LLMs on your Mac with MLX",
+        version=__version__,
     )
 
     # CORS for local development
