@@ -1,29 +1,33 @@
 # CortexLab
 
-**Fine-tune, experiment with, and run LLMs locally on your Mac.**
+**Fine-tune LLMs on your Mac with MLX. No cloud, no CUDA required.**
 
 [![PyPI](https://img.shields.io/pypi/v/cortexlab)](https://pypi.org/project/cortexlab/)
 [![Python](https://img.shields.io/pypi/pyversions/cortexlab)](https://pypi.org/project/cortexlab/)
 [![License](https://img.shields.io/github/license/moyuan5989/CortexLab)](LICENSE)
 [![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/CortexLab/test.yml?label=tests)](https://github.com/moyuan5989/CortexLab/actions)
 
-CortexLab is your local LLM workshop for Apple Silicon. Fine-tune models with LoRA/QLoRA, align them with DPO, and test them interactively — all through a browser-based Studio UI or the command line. No cloud, no GPUs, just your Mac.
+CortexLab is a complete LLM fine-tuning toolkit that runs entirely on your Mac. Pick a model, upload your data, and start training — all from a browser-based UI. Supports LoRA, QLoRA, DPO, 18+ models, and 20+ curated datasets out of the box.
+
+```bash
+pip install cortexlab
+cortexlab studio
+```
 
 <p align="center">
   <img src="assets/studio-new-training.png" alt="CortexLab Studio — New Training" width="800">
 </p>
 
-## Installation
+## Why CortexLab?
 
-```bash
-pip install cortexlab
-```
-
-Requires macOS with Apple Silicon (M1/M2/M3/M4) and Python 3.10+.
+- **One command to start** — `pip install cortexlab && cortexlab studio`. No Docker, no config files, no environment setup.
+- **Browser-based Studio UI** — Guided training wizard, real-time loss charts, model library with memory estimates, interactive playground.
+- **Runs on Apple Silicon** — Built on [MLX](https://github.com/ml-explore/mlx). Your data stays on your machine.
+- **Production training features** — QLoRA (67% memory reduction), sequence packing (2-5x speedup), gradient checkpointing, DPO alignment, compiled training loop.
 
 ## Quick Start
 
-### Option 1: Studio UI (recommended)
+### Studio UI (recommended)
 
 ```bash
 cortexlab studio
@@ -32,7 +36,7 @@ cortexlab studio
 
 Pick a recipe, choose a model, upload your data, and start training — all from the browser.
 
-### Option 2: CLI
+### CLI
 
 ```bash
 # Browse and download a dataset
@@ -43,21 +47,34 @@ cortexlab data download alpaca-cleaned --max-samples 5000
 cortexlab train --config train.yaml
 ```
 
-CortexLab downloads models from Hugging Face on first run and caches them locally. All subsequent runs work offline.
+Models are downloaded from Hugging Face on first run and cached locally. All subsequent runs work offline.
 
 ## Studio UI
-
-Launch the browser-based dashboard with `cortexlab studio`:
-
-- **New Training** — Guided wizard: pick a recipe (chat, instruction, DPO, writing style), choose a model, configure, and launch
-- **Model Library** — Browse 18+ supported models with memory estimates for your hardware
-- **Experiments** — Compare runs, view loss curves in real time
-- **Datasets** — Manage your training data
-- **Playground** — Chat with your fine-tuned models interactively
 
 <p align="center">
   <img src="assets/studio-model-library.png" alt="CortexLab Studio — Model Library" width="800">
 </p>
+
+- **New Training** — Guided wizard: pick a recipe (chat, instruction, DPO, writing style), choose a model, configure, and launch
+- **Model Library** — Browse 18+ models with memory estimates for your hardware
+- **Experiments** — Compare runs, view loss curves in real time
+- **Datasets** — Manage your training data
+- **Playground** — Chat with your fine-tuned models interactively
+
+## Supported Models
+
+18 curated models in the Studio library, all tested on Apple Silicon:
+
+| Architecture | Models | Sizes |
+|-------------|--------|-------|
+| Qwen | Qwen 2.5, Qwen 3, Qwen 3.5 | 0.5B - 8B |
+| Gemma | Gemma 2, Gemma 3 | 1B - 9B |
+| Llama | Llama 3.1 | 8B |
+| Phi | Phi-3 Mini, Phi-4 Mini | 3.8B |
+| DeepSeek | DeepSeek-R1-Distill (Qwen-based) | 1.5B - 7B |
+| Mistral | Mistral (uses Llama architecture) | 7B |
+
+Any HF model using a supported architecture will work — the table above shows the curated models with pre-computed memory estimates in Studio.
 
 ## Features
 
@@ -69,19 +86,6 @@ Launch the browser-based dashboard with `cortexlab studio`:
 - Compiled training loop with gradient accumulation
 - Cosine, linear, step, and exponential LR schedules with warmup
 - Resume from any checkpoint
-
-**Models** — 18 curated models in the Studio library, all tested on Apple Silicon:
-
-| Architecture | Models | Sizes |
-|-------------|--------|-------|
-| Qwen | Qwen 2.5, Qwen 3, Qwen 3.5 | 0.5B - 8B |
-| Gemma | Gemma 2, Gemma 3 | 1B - 9B |
-| Llama | Llama 3.1 | 8B |
-| Phi | Phi-3 Mini, Phi-4 Mini | 3.8B |
-| DeepSeek | DeepSeek-R1-Distill (Qwen-based) | 1.5B - 7B |
-| Mistral | Mistral (uses Llama architecture) | 7B |
-
-Models are auto-downloaded from Hugging Face on first use. Any HF model using a supported architecture will work — the table above shows the curated models with pre-computed memory estimates in Studio.
 
 **Data**
 - 20+ curated datasets across 7 categories (general, code, math, conversation, reasoning, safety, domain)
