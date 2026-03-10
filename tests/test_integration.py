@@ -7,9 +7,9 @@ import json
 import mlx.nn as nn
 import pytest
 
-from cortexlab import prepare
-from cortexlab.adapters.targeting import get_patterns, resolve_targets
-from cortexlab.config import (
+from mlx_forge import prepare
+from mlx_forge.adapters.targeting import get_patterns, resolve_targets
+from mlx_forge.config import (
     AdapterConfig,
     DataConfig,
     ModelConfig,

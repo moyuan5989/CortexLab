@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cortexlab"
+name = "mlx-forge"
 version = "0.1.2"
 description = "Fine-tune, experiment with, and run LLMs locally on your Mac"
 license = "MIT"
@@ -51,21 +51,21 @@ dev = [
     "ruff>=0.4.0",
 ]
 all = [
-    "cortexlab[wandb]",
+    "mlx-forge[wandb]",
 ]
 
 [project.urls]
-Repository = "https://github.com/moyuan5989/CortexLab"
-Issues = "https://github.com/moyuan5989/CortexLab/issues"
+Repository = "https://github.com/moyuan5989/mlx-forge"
+Issues = "https://github.com/moyuan5989/mlx-forge/issues"
 
 [project.scripts]
-cortexlab = "cortexlab.cli.main:main"
+mlx-forge = "mlx_forge.cli.main:main"
 
 [tool.setuptools.packages.find]
-include = ["cortexlab*"]
+include = ["mlx_forge*"]
 
 [tool.setuptools.package-data]
-cortexlab = [
+mlx_forge = [
     "studio/frontend/**/*",
     "recipes/built_in/*.yaml",
 ]

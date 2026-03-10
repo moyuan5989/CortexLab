@@ -118,7 +118,7 @@ export default function NewTraining() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'cortexlab-config.json'
+      a.download = 'mlxforge-config.json'
       a.click()
       URL.revokeObjectURL(url)
     } catch {

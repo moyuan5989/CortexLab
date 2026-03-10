@@ -5,7 +5,7 @@ This example shows the complete workflow for fine-tuning a model using a Hugging
 ## Prerequisites
 
 ```bash
-# Install CortexLab
+# Install MLX Forge
 pip install -e .
 
 # Install dataset conversion dependencies
@@ -54,7 +54,7 @@ data:
   train: data/alpaca/train.jsonl
   valid: data/alpaca/valid.jsonl
   test: null
-  cache_dir: ~/.cortexlab/cache/preprocessed
+  cache_dir: ~/.mlxforge/cache/preprocessed
   max_seq_length: 2048
   mask_prompt: true
 
@@ -80,7 +80,7 @@ training:
   keep_last_n_checkpoints: 3
 
 runtime:
-  run_dir: ~/.cortexlab/runs
+  run_dir: ~/.mlxforge/runs
   eager: false
   report_to: null
   wandb_project: null
@@ -124,10 +124,10 @@ runtime:
 Pre-tokenize the dataset to verify format and cache it:
 
 ```bash
-cortexlab prepare \
+mlx-forge prepare \
   --data data/alpaca/train.jsonl \
   --model Qwen/Qwen3-0.6B \
-  --output ~/.cortexlab/cache/preprocessed
+  --output ~/.mlxforge/cache/preprocessed
 ```
 
 Expected output:
@@ -150,12 +150,12 @@ Tokenizing 49400 samples...
 Start training:
 
 ```bash
-cortexlab train --config examples/alpaca_qwen3.yaml
+mlx-forge train --config examples/alpaca_qwen3.yaml
 ```
 
 Expected output:
 ```
-CortexLab v0 — Training
+MLX Forge v0 — Training
 Model: Qwen/Qwen3-0.6B
 Adapter: lora (rank=16)
 
@@ -190,7 +190,7 @@ View metrics:
 
 ```bash
 # Real-time monitoring
-tail -f ~/.cortexlab/runs/*/logs/metrics.jsonl | jq
+tail -f ~/.mlxforge/runs/*/logs/metrics.jsonl | jq
 
 # Plot loss curve (requires matplotlib)
 python -c "
@@ -198,7 +198,7 @@ import json
 import matplotlib.pyplot as plt
 
 losses = []
-with open('~/.cortexlab/runs/YOUR_RUN_ID/logs/metrics.jsonl') as f:
+with open('~/.mlxforge/runs/YOUR_RUN_ID/logs/metrics.jsonl') as f:
     for line in f:
         data = json.loads(line)
         if data['event'] == 'train':
@@ -216,7 +216,7 @@ plt.savefig('loss_curve.png')
 
 The trained LoRA adapters are saved in:
 ```
-~/.cortexlab/runs/20260203-HHMMSS-sft-Qwen3-0.6B-XXXX/
+~/.mlxforge/runs/20260203-HHMMSS-sft-Qwen3-0.6B-XXXX/
 ├── checkpoints/
 │   ├── step-0001000/
 │   ├── step-0002000/
@@ -234,7 +234,7 @@ from mlx_lm import load, generate
 model, tokenizer = load("Qwen/Qwen3-0.6B")
 
 # Load LoRA weights
-adapter_path = "~/.cortexlab/runs/.../checkpoints/best/adapters.safetensors"
+adapter_path = "~/.mlxforge/runs/.../checkpoints/best/adapters.safetensors"
 model.load_weights(adapter_path, strict=False)
 
 # Generate
@@ -294,4 +294,4 @@ Adjust based on validation loss convergence.
 **Dataset format errors:**
 - Check JSONL format: `head -1 data/alpaca/train.jsonl | jq`
 - Verify chat format: `{"messages": [{"role": "user", ...}]}`
-- Run `cortexlab prepare` to validate format
+- Run `mlx-forge prepare` to validate format

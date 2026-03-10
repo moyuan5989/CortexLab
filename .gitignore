@@ -31,7 +31,7 @@ Thumbs.db
 htmlcov/
 
 # CortexLab runtime
-.cortexlab/
+.mlxforge/
 
 # Downloaded datasets (use scripts to regenerate)
 data/alpaca/

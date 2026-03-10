@@ -1,26 +1,26 @@
-# CortexLab
+# MLX Forge
 
 **Fine-tune LLMs on your Mac with MLX. No cloud, no CUDA required.**
 
-[![PyPI](https://img.shields.io/pypi/v/cortexlab)](https://pypi.org/project/cortexlab/)
-[![Python](https://img.shields.io/pypi/pyversions/cortexlab)](https://pypi.org/project/cortexlab/)
+[![PyPI](https://img.shields.io/pypi/v/mlx-forge)](https://pypi.org/project/mlx-forge/)
+[![Python](https://img.shields.io/pypi/pyversions/mlx-forge)](https://pypi.org/project/mlx-forge/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/CortexLab/test.yml?label=tests)](https://github.com/moyuan5989/CortexLab/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/moyuan5989/mlx-forge/test.yml?label=tests)](https://github.com/moyuan5989/mlx-forge/actions)
 
-CortexLab is a complete LLM fine-tuning toolkit that runs entirely on your Mac. Pick a model, upload your data, and start training — all from a browser-based UI. Supports LoRA, QLoRA, DPO, 18+ models, and 20+ curated datasets out of the box.
+MLX Forge is a complete LLM fine-tuning toolkit that runs entirely on your Mac. Pick a model, upload your data, and start training — all from a browser-based UI. Supports LoRA, QLoRA, DPO, 18+ models, and 20+ curated datasets out of the box.
 
 ```bash
-pip install cortexlab
-cortexlab studio
+pip install mlx-forge
+mlx-forge studio
 ```
 
 <p align="center">
-  <img src="assets/studio-new-training.png" alt="CortexLab Studio — New Training" width="800">
+  <img src="assets/studio-new-training.png" alt="MLX Forge Studio — New Training" width="800">
 </p>
 
-## Why CortexLab?
+## Why MLX Forge?
 
-- **One command to start** — `pip install cortexlab && cortexlab studio`.
+- **One command to start** — `pip install mlx-forge && mlx-forge studio`.
 - **Browser-based Studio UI** — Guided training wizard, real-time loss charts, model library with memory estimates, interactive playground.
 - **Runs on Apple Silicon** — Built on [MLX](https://github.com/ml-explore/mlx). Your data stays on your machine.
 - **Production training features** — QLoRA (67% memory reduction), sequence packing (2-5x speedup), gradient checkpointing, DPO alignment, compiled training loop.
@@ -30,7 +30,7 @@ cortexlab studio
 ### Studio UI (recommended)
 
 ```bash
-cortexlab studio
+mlx-forge studio
 # Opens at http://127.0.0.1:8741
 ```
 
@@ -40,11 +40,11 @@ Pick a recipe, choose a model, upload your data, and start training — all from
 
 ```bash
 # Browse and download a dataset
-cortexlab data catalog
-cortexlab data download alpaca-cleaned --max-samples 5000
+mlx-forge data catalog
+mlx-forge data download alpaca-cleaned --max-samples 5000
 
 # Train
-cortexlab train --config train.yaml
+mlx-forge train --config train.yaml
 ```
 
 Models are downloaded from Hugging Face on first run and cached locally. All subsequent runs work offline.
@@ -52,7 +52,7 @@ Models are downloaded from Hugging Face on first run and cached locally. All sub
 ## Studio UI
 
 <p align="center">
-  <img src="assets/studio-model-library.png" alt="CortexLab Studio — Model Library" width="800">
+  <img src="assets/studio-model-library.png" alt="MLX Forge Studio — Model Library" width="800">
 </p>
 
 - **New Training** — Guided wizard: pick a recipe (chat, instruction, DPO, writing style), choose a model, configure, and launch
@@ -97,16 +97,16 @@ Any HF model using a supported architecture will work — the table above shows 
 
 | Command | Description |
 |---------|-------------|
-| `cortexlab studio` | Launch the Studio UI |
-| `cortexlab train --config FILE` | Run LoRA/QLoRA/DPO training |
-| `cortexlab generate --model MODEL` | Generate text or interactive chat |
-| `cortexlab prepare --data FILE --model MODEL` | Pre-tokenize a dataset |
-| `cortexlab data catalog` | Browse 20+ curated datasets |
-| `cortexlab data download DATASET` | Download a dataset from the catalog |
-| `cortexlab data import FILE --name NAME` | Import a local JSONL file |
-| `cortexlab data validate FILE` | Validate JSONL data |
-| `cortexlab data inspect NAME` | Preview dataset samples |
-| `cortexlab data stats NAME` | Show dataset statistics |
+| `mlx-forge studio` | Launch the Studio UI |
+| `mlx-forge train --config FILE` | Run LoRA/QLoRA/DPO training |
+| `mlx-forge generate --model MODEL` | Generate text or interactive chat |
+| `mlx-forge prepare --data FILE --model MODEL` | Pre-tokenize a dataset |
+| `mlx-forge data catalog` | Browse 20+ curated datasets |
+| `mlx-forge data download DATASET` | Download a dataset from the catalog |
+| `mlx-forge data import FILE --name NAME` | Import a local JSONL file |
+| `mlx-forge data validate FILE` | Validate JSONL data |
+| `mlx-forge data inspect NAME` | Preview dataset samples |
+| `mlx-forge data stats NAME` | Show dataset statistics |
 
 ## Configuration
 
@@ -145,7 +145,7 @@ runtime:
 
 ## Data Formats
 
-CortexLab auto-detects four JSONL formats:
+MLX Forge auto-detects four JSONL formats:
 
 **Chat** — Multi-turn conversations (loss on assistant turns only):
 ```json
@@ -172,8 +172,8 @@ CortexLab auto-detects four JSONL formats:
 All CLI commands are backed by Python functions:
 
 ```python
-from cortexlab import prepare, train
-from cortexlab.config import TrainingConfig
+from mlx_forge import prepare, train
+from mlx_forge.config import TrainingConfig
 
 # Train from a config file
 config = TrainingConfig.from_yaml("train.yaml")
@@ -182,12 +182,12 @@ print(f"Best val loss: {result.best_val_loss:.4f}")
 ```
 
 ```python
-from cortexlab import generate
+from mlx_forge import generate
 
 # Generate text with a fine-tuned adapter
 generate(
     model="Qwen/Qwen3-0.6B",
-    adapter="~/.cortexlab/runs/my-run/checkpoints/best",
+    adapter="~/.mlxforge/runs/my-run/checkpoints/best",
     prompt="Explain quantum computing in simple terms.",
 )
 ```

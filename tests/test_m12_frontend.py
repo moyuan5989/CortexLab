@@ -91,10 +91,10 @@ class TestFrontendProjectStructure:
 class TestFrontendBuildOutput:
     """Verify the production build was copied to the backend package."""
 
-    frontend_dir = Path(__file__).parent.parent / "cortexlab" / "studio" / "frontend"
+    frontend_dir = Path(__file__).parent.parent / "mlx_forge" / "studio" / "frontend"
 
     def test_frontend_directory_exists(self):
-        assert self.frontend_dir.exists(), "cortexlab/studio/frontend/ should exist"
+        assert self.frontend_dir.exists(), "mlx_forge/studio/frontend/ should exist"
 
     def test_index_html_exists(self):
         index = self.frontend_dir / "index.html"
@@ -125,7 +125,7 @@ class TestFrontendBuildOutput:
 def app():
     """Create a test FastAPI app."""
     try:
-        from cortexlab.studio.server import create_app
+        from mlx_forge.studio.server import create_app
     except ImportError:
         pytest.skip("FastAPI not installed")
     return create_app()
@@ -169,7 +169,7 @@ class TestServerServesFrontend:
 
     def test_assets_served(self, client):
         """Static assets should be accessible."""
-        frontend_dir = Path(__file__).parent.parent / "cortexlab" / "studio" / "frontend"
+        frontend_dir = Path(__file__).parent.parent / "mlx_forge" / "studio" / "frontend"
         assets = list((frontend_dir / "assets").glob("*.js"))
         if assets:
             asset_name = assets[0].name

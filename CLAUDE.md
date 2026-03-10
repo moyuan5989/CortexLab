@@ -1,4 +1,4 @@
-# CortexLab — Development Guide
+# MLX Forge — Development Guide
 
 > Contributor reference for architecture, conventions, and common tasks.
 
@@ -6,11 +6,11 @@
 
 ## Project Overview
 
-CortexLab is a LoRA SFT training framework for MLX on Apple Silicon with a browser-based Studio UI.
+MLX Forge is a LoRA SFT training framework for MLX on Apple Silicon with a browser-based Studio UI.
 
 **Package structure:**
 ```
-cortexlab/
+mlx_forge/
 ├── adapters/           # LoRA targeting, application, fusing
 ├── cli/                # CLI commands (prepare, train, generate, studio, data)
 ├── config.py           # Pydantic config models
@@ -34,7 +34,7 @@ cortexlab/
 - **Explicit targeting**: LoRA adapters applied via glob patterns (e.g., `*.self_attn.q_proj`)
 - **Fail fast**: Validate all configs before loading models or data
 - **Stateless LR schedules**: Pure functions of step number (reconstructed on resume)
-- **No database**: Filesystem is the database (Studio reads `~/.cortexlab/` directly)
+- **No database**: Filesystem is the database (Studio reads `~/.mlx_forge/` directly)
 - **Pydantic v2**: Config models use `extra="forbid"` — new fields must be optional with backward-compatible defaults
 
 ---
@@ -44,8 +44,8 @@ cortexlab/
 1. **Checkpoint format**: Exactly 3 files per checkpoint: `adapters.safetensors`, `optimizer.safetensors`, `state.json`
 2. **Batch contract**: `(B, T)` input_ids + `(B, T)` labels with `-100` masking
 3. **Config schema**: Pydantic v2 models with `extra="forbid"`, schema version stays at 1
-4. **Run directory layout**: `~/.cortexlab/runs/{run_id}/` with config.yaml, manifest.json, checkpoints/, logs/
-5. **Data storage**: `~/.cortexlab/datasets/raw/` (JSONL) + `~/.cortexlab/datasets/processed/` (Arrow)
+4. **Run directory layout**: `~/.mlx_forge/runs/{run_id}/` with config.yaml, manifest.json, checkpoints/, logs/
+5. **Data storage**: `~/.mlx_forge/datasets/raw/` (JSONL) + `~/.mlx_forge/datasets/processed/` (Arrow)
 
 ---
 
@@ -96,7 +96,7 @@ cortexlab/
 
 ## Adding a New Architecture
 
-1. Create `cortexlab/models/architectures/newmodel.py` implementing:
+1. Create `mlx_forge/models/architectures/newmodel.py` implementing:
    ```python
    class NewModelArgs(BaseModelArgs):
        @classmethod
@@ -107,9 +107,9 @@ cortexlab/
            # inputs: (B, T) → logits: (B, T, vocab_size)
    ```
 
-2. Register in `cortexlab/models/registry.py`:
+2. Register in `mlx_forge/models/registry.py`:
    ```python
-   SUPPORTED_ARCHITECTURES["newmodel"] = "cortexlab.models.architectures.newmodel"
+   SUPPORTED_ARCHITECTURES["newmodel"] = "mlx_forge.models.architectures.newmodel"
    ```
 
 3. Add tests in `tests/test_model_loading.py`
@@ -118,7 +118,7 @@ cortexlab/
 
 ## Adding a LoRA Preset
 
-Edit `cortexlab/adapters/targeting.py`:
+Edit `mlx_forge/adapters/targeting.py`:
 ```python
 PRESETS["my-preset"] = ["*.module1", "*.module2"]
 ```
@@ -132,7 +132,7 @@ The Studio frontend lives in `studio-frontend/` (React + Vite + TypeScript):
 ```bash
 cd studio-frontend
 npm install
-npm run build    # Output → cortexlab/studio/frontend/
+npm run build    # Output → mlx_forge/studio/frontend/
 npm run dev      # Dev server with hot reload
 ```
 

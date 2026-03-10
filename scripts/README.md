@@ -1,10 +1,10 @@
-# CortexLab Scripts
+# MLX Forge Scripts
 
-Standalone scripts for working with CortexLab. These are **not part of the cortexlab package** - they're convenience tools for data preparation.
+Standalone scripts for working with MLX Forge. These are **not part of the mlx-forge package** - they're convenience tools for data preparation.
 
 ## download_hf_dataset.py
 
-Convert HuggingFace datasets to CortexLab JSONL format.
+Convert HuggingFace datasets to MLX Forge JSONL format.
 
 ### Installation
 
@@ -71,14 +71,14 @@ Creates two JSONL files in chat format:
 
 ### Next Steps
 
-After downloading, use with CortexLab:
+After downloading, use with MLX Forge:
 
 ```bash
 # Prepare (tokenize and cache)
-cortexlab prepare --data data/train.jsonl --model Qwen/Qwen3-0.6B
+mlx-forge prepare --data data/train.jsonl --model Qwen/Qwen3-0.6B
 
 # Train
-cortexlab train --config train.yaml
+mlx-forge train --config train.yaml
 ```
 
 ### Troubleshooting
@@ -130,7 +130,7 @@ To support a new dataset format, add a converter function to `download_hf_datase
 
 ```python
 def convert_my_format(example: dict) -> dict | None:
-    """Convert my dataset format to CortexLab chat format."""
+    """Convert my dataset format to MLX Forge chat format."""
     return {
         "messages": [
             {"role": "user", "content": example["question"]},

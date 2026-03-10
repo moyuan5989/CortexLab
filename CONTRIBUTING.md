@@ -1,13 +1,13 @@
-# Contributing to CortexLab
+# Contributing to MLX Forge
 
-Thanks for your interest in contributing to CortexLab! This guide covers the development setup, coding standards, and submission process.
+Thanks for your interest in contributing to MLX Forge! This guide covers the development setup, coding standards, and submission process.
 
 ## Development Setup
 
 ```bash
 # Clone the repo
-git clone https://github.com/moyuan5989/CortexLab.git
-cd CortexLab
+git clone https://github.com/moyuan5989/MLX Forge.git
+cd MLX Forge
 
 # Create a virtual environment
 python3 -m venv .venv
@@ -27,7 +27,7 @@ pip install -e ".[dev,studio]"
 .venv/bin/python -m pytest tests/test_config.py -v
 
 # Run with coverage
-.venv/bin/python -m pytest tests/ --cov=cortexlab --cov-report=term-missing
+.venv/bin/python -m pytest tests/ --cov=mlx_forge --cov-report=term-missing
 ```
 
 All tests must pass before submitting a PR.
@@ -86,11 +86,11 @@ PRs should:
 
 ## Adding a New Architecture
 
-1. **Create the architecture file** at `cortexlab/models/architectures/newmodel.py`:
+1. **Create the architecture file** at `mlx_forge/models/architectures/newmodel.py`:
 
 ```python
 from dataclasses import dataclass
-from cortexlab.models._base import BaseModelArgs
+from mlx_forge.models._base import BaseModelArgs
 
 @dataclass
 class NewModelArgs(BaseModelArgs):
@@ -110,12 +110,12 @@ class NewModel(nn.Module):
         ...
 ```
 
-2. **Register it** in `cortexlab/models/registry.py`:
+2. **Register it** in `mlx_forge/models/registry.py`:
 
 ```python
 SUPPORTED_ARCHITECTURES = {
     ...
-    "newmodel": "cortexlab.models.architectures.newmodel",
+    "newmodel": "mlx_forge.models.architectures.newmodel",
 }
 ```
 
@@ -133,12 +133,12 @@ npm install
 npm run build
 ```
 
-The build output goes to `cortexlab/studio/frontend/` and is served by the FastAPI backend.
+The build output goes to `mlx_forge/studio/frontend/` and is served by the FastAPI backend.
 
 ## Project Structure
 
 ```
-cortexlab/
+mlx_forge/
 ├── adapters/           # LoRA targeting, application, fusing
 ├── cli/                # CLI commands (prepare, train, generate, studio, data)
 ├── config.py           # Pydantic config models
@@ -151,4 +151,4 @@ cortexlab/
 
 ## Questions?
 
-Open an [issue](https://github.com/moyuan5989/CortexLab/issues) for bugs, feature requests, or questions.
+Open an [issue](https://github.com/moyuan5989/MLX Forge/issues) for bugs, feature requests, or questions.

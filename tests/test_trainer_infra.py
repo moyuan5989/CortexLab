@@ -6,7 +6,7 @@ import json
 
 import mlx.nn as nn
 
-from cortexlab.config import (
+from mlx_forge.config import (
     AdapterConfig,
     DataConfig,
     LRScheduleConfig,
@@ -15,10 +15,10 @@ from cortexlab.config import (
     TrainingConfig,
     TrainingParams,
 )
-from cortexlab.logging.metrics import write_metrics_line
-from cortexlab.trainer.checkpoint import CheckpointManager
-from cortexlab.trainer.optimizer import build_optimizer, build_scheduler
-from cortexlab.trainer.state import TrainState
+from mlx_forge.logging.metrics import write_metrics_line
+from mlx_forge.trainer.checkpoint import CheckpointManager
+from mlx_forge.trainer.optimizer import build_optimizer, build_scheduler
+from mlx_forge.trainer.state import TrainState
 
 
 class MockModel(nn.Module):

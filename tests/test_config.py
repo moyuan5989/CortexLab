@@ -6,7 +6,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from cortexlab.config import (
+from mlx_forge.config import (
     AdapterConfig,
     DataConfig,
     DataSourceConfig,
@@ -163,7 +163,7 @@ class TestRuntimeConfig:
     def test_runtime_config_defaults(self):
         """Test that RuntimeConfig has correct defaults."""
         runtime = RuntimeConfig()
-        assert runtime.run_dir == "~/.cortexlab/runs"
+        assert runtime.run_dir == "~/.mlxforge/runs"
         assert runtime.eager is False
         assert runtime.report_to is None
         assert runtime.wandb_project is None
@@ -174,7 +174,7 @@ class TestRuntimeConfig:
         del config_no_runtime["runtime"]
 
         config = TrainingConfig(**config_no_runtime)
-        assert config.runtime.run_dir == "~/.cortexlab/runs"
+        assert config.runtime.run_dir == "~/.mlxforge/runs"
         assert config.runtime.eager is False
 
 

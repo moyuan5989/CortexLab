@@ -1,4 +1,4 @@
-# CortexLab Training Config - Hugging Face Model Example
+# MLX Forge Training Config - Hugging Face Model Example
 # This example shows how to fine-tune a model directly from Hugging Face Hub
 
 schema_version: 1
@@ -19,7 +19,7 @@ adapter:
 data:
   train: "./data/train.jsonl"
   valid: "./data/valid.jsonl"
-  cache_dir: "~/.cortexlab/cache/preprocessed"
+  cache_dir: "~/.mlxforge/cache/preprocessed"
   max_seq_length: 2048
   mask_prompt: true
 
@@ -37,5 +37,5 @@ training:
   keep_last_n_checkpoints: 3
 
 runtime:
-  run_dir: "~/.cortexlab/runs"
+  run_dir: "~/.mlxforge/runs"
   eager: false

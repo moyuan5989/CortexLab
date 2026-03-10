@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CortexLab will be documented in this file.
+All notable changes to MLX Forge will be documented in this file.
 
 ## [0.1.0] - 2026-03-05
 
@@ -37,8 +37,8 @@ Initial open-source release.
 - Arrow-based storage backend for tokenized datasets
 
 ### CLI
-- `cortexlab train` — Run training from YAML config
-- `cortexlab generate` — Text generation with optional LoRA adapters
-- `cortexlab prepare` — Pre-tokenize datasets
-- `cortexlab studio` — Launch browser-based UI
-- `cortexlab data` — Dataset management (catalog, download, import, validate)
+- `mlx-forge train` — Run training from YAML config
+- `mlx-forge generate` — Text generation with optional LoRA adapters
+- `mlx-forge prepare` — Pre-tokenize datasets
+- `mlx-forge studio` — Launch browser-based UI
+- `mlx-forge data` — Dataset management (catalog, download, import, validate)

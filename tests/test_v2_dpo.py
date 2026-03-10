@@ -21,7 +21,7 @@ class TestSFTLoss:
 
     def test_sft_loss_basic(self):
         """SFT loss computes cross-entropy on non-masked tokens only."""
-        from cortexlab.losses.sft import SFTLoss
+        from mlx_forge.losses.sft import SFTLoss
 
         loss_fn = SFTLoss()
 
@@ -37,7 +37,7 @@ class TestSFTLoss:
 
     def test_sft_loss_backward_compat(self):
         """Module-level loss_fn still works."""
-        from cortexlab.losses.sft import loss_fn
+        from mlx_forge.losses.sft import loss_fn
 
         model = _make_dummy_model(vocab_size=10)
         input_ids = mx.array([[1, 2, 3, 4, 5]], dtype=mx.int32)
@@ -50,7 +50,7 @@ class TestSFTLoss:
 
     def test_sft_packed_loss(self):
         """Packed SFT loss respects segment boundaries."""
-        from cortexlab.losses.sft import SFTLoss
+        from mlx_forge.losses.sft import SFTLoss
 
         loss_fn = SFTLoss()
         model = _make_dummy_model(vocab_size=10)
@@ -67,7 +67,7 @@ class TestSFTLoss:
 
     def test_trainer_loss_compat(self):
         """Trainer module-level functions still work."""
-        from cortexlab.trainer.trainer import loss_fn
+        from mlx_forge.trainer.trainer import loss_fn
 
         model = _make_dummy_model(vocab_size=10)
         input_ids = mx.array([[1, 2, 3, 4, 5]], dtype=mx.int32)
@@ -83,7 +83,7 @@ class TestDPOLoss:
 
     def test_dpo_loss_reference_free(self):
         """SimPO (reference-free DPO) computes loss without reference model."""
-        from cortexlab.losses.dpo import DPOLoss
+        from mlx_forge.losses.dpo import DPOLoss
 
         loss_fn = DPOLoss(beta=0.1, reference_free=True)
         model = _make_dummy_model(vocab_size=10)
@@ -101,7 +101,7 @@ class TestDPOLoss:
 
     def test_dpo_loss_standard_requires_reference(self):
         """Standard DPO raises error without reference log-probs."""
-        from cortexlab.losses.dpo import DPOLoss
+        from mlx_forge.losses.dpo import DPOLoss
 
         loss_fn = DPOLoss(beta=0.1, reference_free=False)
         model = _make_dummy_model(vocab_size=10)
@@ -116,7 +116,7 @@ class TestDPOLoss:
 
     def test_dpo_loss_standard_with_reference(self):
         """Standard DPO works with reference log-probs."""
-        from cortexlab.losses.dpo import DPOLoss
+        from mlx_forge.losses.dpo import DPOLoss
 
         loss_fn = DPOLoss(beta=0.1, reference_free=False)
         model = _make_dummy_model(vocab_size=10)
@@ -140,7 +140,7 @@ class TestDPOLoss:
 
     def test_dpo_beta_affects_loss(self):
         """Higher beta produces different loss value."""
-        from cortexlab.losses.dpo import DPOLoss
+        from mlx_forge.losses.dpo import DPOLoss
 
         model = _make_dummy_model(vocab_size=10)
         chosen_ids = mx.array([[1, 2, 3, 4, 5]], dtype=mx.int32)
@@ -159,7 +159,7 @@ class TestDPOLoss:
 
     def test_sequence_logprobs(self):
         """_sequence_logprobs returns correct shapes."""
-        from cortexlab.losses.dpo import DPOLoss
+        from mlx_forge.losses.dpo import DPOLoss
 
         loss_fn = DPOLoss()
         model = _make_dummy_model(vocab_size=10)
@@ -184,7 +184,7 @@ class TestPreferenceFormat:
 
     def test_detect_preference_format(self):
         """Detects preference format from chosen/rejected keys."""
-        from cortexlab.data.formats import detect_format
+        from mlx_forge.data.formats import detect_format
 
         samples = [{
             "chosen": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "good"}],
@@ -194,7 +194,7 @@ class TestPreferenceFormat:
 
     def test_preference_over_chat(self):
         """Preference format takes priority even if 'messages' is also present."""
-        from cortexlab.data.formats import detect_format
+        from mlx_forge.data.formats import detect_format
 
         samples = [{
             "chosen": [{"role": "user", "content": "hi"}],
@@ -205,7 +205,7 @@ class TestPreferenceFormat:
 
     def test_validate_preference_valid(self):
         """Valid preference samples pass validation."""
-        from cortexlab.data.formats import validate_samples
+        from mlx_forge.data.formats import validate_samples
 
         samples = [{
             "chosen": [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}],
@@ -216,7 +216,7 @@ class TestPreferenceFormat:
 
     def test_validate_preference_missing_chosen(self):
         """Missing 'chosen' field is caught."""
-        from cortexlab.data.formats import validate_samples
+        from mlx_forge.data.formats import validate_samples
 
         samples = [{"rejected": [{"role": "user", "content": "hi"}]}]
         errors = validate_samples(samples, "preference")
@@ -224,7 +224,7 @@ class TestPreferenceFormat:
 
     def test_validate_preference_bad_message(self):
         """Bad messages in chosen/rejected are caught."""
-        from cortexlab.data.formats import validate_samples
+        from mlx_forge.data.formats import validate_samples
 
         samples = [{"chosen": [{"role": "user"}], "rejected": [{"content": "hi"}]}]
         errors = validate_samples(samples, "preference")
@@ -232,7 +232,7 @@ class TestPreferenceFormat:
 
     def test_validate_preference_empty_list(self):
         """Empty chosen/rejected lists are caught."""
-        from cortexlab.data.formats import validate_samples
+        from mlx_forge.data.formats import validate_samples
 
         samples = [{"chosen": [], "rejected": []}]
         errors = validate_samples(samples, "preference")
@@ -240,7 +240,7 @@ class TestPreferenceFormat:
 
     def test_original_formats_unchanged(self):
         """Chat, completions, text detection still works."""
-        from cortexlab.data.formats import detect_format
+        from mlx_forge.data.formats import detect_format
 
         assert detect_format([{"messages": []}]) == "chat"
         assert detect_format([{"prompt": "x", "completion": "y"}]) == "completions"
@@ -248,7 +248,7 @@ class TestPreferenceFormat:
 
     def test_unknown_format_error_includes_preference(self):
         """Error message for unknown format mentions preference keys."""
-        from cortexlab.data.formats import detect_format
+        from mlx_forge.data.formats import detect_format
 
         with pytest.raises(ValueError, match="chosen.*rejected"):
             detect_format([{"foo": "bar"}])
@@ -262,7 +262,7 @@ class TestPreferenceTokenization:
 
     def test_tokenize_preference(self):
         """Preference tokenization produces chosen/rejected with labels."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         tokenizer = _make_mock_tokenizer()
         samples = [{
@@ -279,7 +279,7 @@ class TestPreferenceTokenization:
 
     def test_tokenize_preference_labels(self):
         """Preference tokenization produces labels with -100 masking."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         tokenizer = _make_mock_tokenizer()
         samples = [{
@@ -301,7 +301,7 @@ class TestPreferenceBatching:
 
     def test_iterate_preference_batches_shapes(self):
         """Preference batches have correct shapes."""
-        from cortexlab.data.batching import iterate_preference_batches
+        from mlx_forge.data.batching import iterate_preference_batches
 
         dataset = [
             {"chosen_input_ids": list(range(10)), "chosen_labels": [-100, -100, -100] + list(range(3, 10)),
@@ -324,7 +324,7 @@ class TestPreferenceBatching:
 
     def test_preference_batch_padding(self):
         """Preference batches are padded to multiple of 32."""
-        from cortexlab.data.batching import iterate_preference_batches
+        from mlx_forge.data.batching import iterate_preference_batches
 
         dataset = [
             {"chosen_input_ids": list(range(10)), "chosen_labels": list(range(10)),
@@ -348,28 +348,28 @@ class TestConfigDPO:
 
     def test_training_type_defaults_to_sft(self):
         """training_type defaults to 'sft' for backward compatibility."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams()
         assert params.training_type == "sft"
 
     def test_training_type_dpo(self):
         """training_type can be set to 'dpo'."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams(training_type="dpo", steps_per_save=100)
         assert params.training_type == "dpo"
 
     def test_dpo_beta_default(self):
         """dpo_beta defaults to 0.1."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams()
         assert params.dpo_beta == 0.1
 
     def test_dpo_reference_free_default(self):
         """dpo_reference_free defaults to True (SimPO)."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams()
         assert params.dpo_reference_free is True
@@ -377,7 +377,7 @@ class TestConfigDPO:
     def test_existing_config_backward_compat(self):
         """Existing V1 configs without training_type still work."""
 
-        from cortexlab.config import TrainingConfig
+        from mlx_forge.config import TrainingConfig
 
         config_yaml = """
 schema_version: 1
@@ -409,13 +409,13 @@ class TestTrainerRefactor:
 
     def test_trainer_alias(self):
         """Trainer is an alias for SFTTrainer."""
-        from cortexlab.trainer.trainer import SFTTrainer, Trainer
+        from mlx_forge.trainer.trainer import SFTTrainer, Trainer
 
         assert Trainer is SFTTrainer
 
     def test_base_trainer_abstract(self):
         """BaseTrainer raises NotImplementedError for abstract methods."""
-        from cortexlab.trainer.trainer import BaseTrainer
+        from mlx_forge.trainer.trainer import BaseTrainer
 
         model = _make_dummy_model(vocab_size=10)
         config = _make_full_config()
@@ -428,7 +428,7 @@ class TestTrainerRefactor:
 
     def test_sft_trainer_creates(self):
         """SFTTrainer can be instantiated."""
-        from cortexlab.trainer.trainer import SFTTrainer
+        from mlx_forge.trainer.trainer import SFTTrainer
 
         model = _make_dummy_model(vocab_size=10)
         config = _make_full_config()
@@ -439,7 +439,7 @@ class TestTrainerRefactor:
 
     def test_dpo_trainer_creates(self):
         """DPOTrainer can be instantiated."""
-        from cortexlab.trainer.dpo_trainer import DPOTrainer
+        from mlx_forge.trainer.dpo_trainer import DPOTrainer
 
         model = _make_dummy_model(vocab_size=10)
         config = _make_full_config(training_type="dpo")
@@ -451,7 +451,7 @@ class TestTrainerRefactor:
 
     def test_clip_grad_norm(self):
         """clip_grad_norm still works after refactor."""
-        from cortexlab.trainer.trainer import clip_grad_norm
+        from mlx_forge.trainer.trainer import clip_grad_norm
 
         grads = {"w": mx.array([3.0, 4.0])}
         clipped = clip_grad_norm(grads, max_norm=1.0)
@@ -535,7 +535,7 @@ class _MockTrainingParams:
 
 @dataclass
 class _MockRuntimeConfig:
-    run_dir: str = "~/.cortexlab/runs"
+    run_dir: str = "~/.mlxforge/runs"
     eager: bool = True
     report_to: str = None
     wandb_project: str = None

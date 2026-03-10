@@ -42,7 +42,7 @@ export default function Settings() {
         <div className="rounded-lg border border-subtle bg-surface-card shadow-[var(--shadow-card)] p-4">
           <label className="block text-sm font-medium text-label mb-2">Run Directory</label>
           <p className="text-sm text-body font-mono bg-surface-overlay rounded px-3 py-2">
-            ~/.cortexlab/runs
+            ~/.mlxforge/runs
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function Settings() {
         <div className="rounded-lg border border-subtle bg-surface-card shadow-[var(--shadow-card)] p-4">
           <label className="block text-sm font-medium text-label mb-2">About</label>
           <div className="text-sm text-caption space-y-1">
-            <p>CortexLab Studio v0.1.2</p>
+            <p>MLX Forge Studio v0.1.2</p>
             <p>Fine-tune LLMs on your Mac with MLX</p>
           </div>
         </div>

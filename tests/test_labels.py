@@ -59,7 +59,7 @@ class TestChatLabels:
 
     def test_single_turn_masks_user(self):
         """Single user+assistant: user tokens masked, assistant tokens have labels."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -86,7 +86,7 @@ class TestChatLabels:
 
     def test_single_turn_no_mask(self):
         """With mask_prompt=False, all tokens should have real labels."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -107,7 +107,7 @@ class TestChatLabels:
 
     def test_multi_turn_all_assistant_turns_trained(self):
         """Multi-turn chat: ALL assistant turns should have real labels."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -138,7 +138,7 @@ class TestChatLabels:
 
     def test_system_message_masked(self):
         """System message tokens should be masked with -100."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -160,7 +160,7 @@ class TestChatLabels:
 
     def test_labels_same_length_as_input_ids(self):
         """Labels should always be same length as input_ids."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -181,7 +181,7 @@ class TestChatLabels:
 
     def test_truncation(self):
         """Sequences longer than max_seq_length should be truncated."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         # Create a sample with many tokens
         long_content = "a" * 100
@@ -211,7 +211,7 @@ class TestCompletionsLabels:
 
     def test_prompt_masked_completion_trained(self):
         """Prompt tokens masked, completion tokens trained."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"prompt": "Question", "completion": "Answer"}]
 
@@ -231,7 +231,7 @@ class TestCompletionsLabels:
 
     def test_completions_no_mask(self):
         """With mask_prompt=False, all tokens should be trained."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"prompt": "Q", "completion": "A"}]
 
@@ -245,7 +245,7 @@ class TestCompletionsLabels:
 
     def test_completions_output_format(self):
         """Completions should produce input_ids and labels keys."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"prompt": "Hello", "completion": "World"}]
 
@@ -261,7 +261,7 @@ class TestTextLabels:
 
     def test_text_all_trained(self):
         """Text format: labels == input_ids (train on everything)."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"text": "Hello world foo bar"}]
 
@@ -274,7 +274,7 @@ class TestTextLabels:
 
     def test_text_eos_appended(self):
         """Text format should append EOS if not already present."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"text": "Hello"}]
 
@@ -287,7 +287,7 @@ class TestTextLabels:
 
     def test_text_truncation(self):
         """Text format respects max_seq_length."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"text": " ".join(["word"] * 200)}]
 
@@ -300,7 +300,7 @@ class TestTextLabels:
 
     def test_text_output_format(self):
         """Text should produce input_ids and labels keys."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [{"text": "Sample"}]
 
@@ -316,7 +316,7 @@ class TestPreferenceLabels:
 
     def test_preference_output_keys(self):
         """Preference format should produce 4 keys."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -345,7 +345,7 @@ class TestPreferenceLabels:
 
     def test_preference_labels_mask_prompt(self):
         """Preference: user tokens masked, assistant tokens trained."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -379,7 +379,7 @@ class TestPreferenceLabels:
 
     def test_preference_lengths_consistent(self):
         """Chosen/rejected input_ids and labels should have matching lengths."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -405,7 +405,7 @@ class TestPreferenceLabels:
 
     def test_preference_multiple_samples(self):
         """Multiple preference samples should all be tokenized."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {
@@ -446,7 +446,7 @@ class TestUnknownFormat:
 
     def test_unknown_format_raises(self):
         """Unknown format should raise ValueError."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         with pytest.raises(ValueError, match="Unknown format"):
             tokenize_dataset([{"text": "hi"}], MockTokenizer(), "unknown_format")
@@ -457,14 +457,14 @@ class TestTokenizeDataset:
 
     def test_empty_input(self):
         """Empty sample list should return empty result."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         result = tokenize_dataset([], MockTokenizer(), "text")
         assert result == []
 
     def test_multiple_samples(self):
         """Multiple samples should all be tokenized."""
-        from cortexlab.data.preprocessing import tokenize_dataset
+        from mlx_forge.data.preprocessing import tokenize_dataset
 
         samples = [
             {"text": "Hello"},

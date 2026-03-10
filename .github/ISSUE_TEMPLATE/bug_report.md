@@ -28,7 +28,7 @@ What actually happened. Include error messages or tracebacks if applicable.
 
 - macOS version:
 - Python version:
-- CortexLab version (`pip show cortexlab`):
+- MLX Forge version (`pip show mlx-forge`):
 - Apple Silicon chip (M1/M2/M3/M4):
 - MLX version:
 

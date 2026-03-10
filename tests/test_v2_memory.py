@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from cortexlab.models.memory import (
+from mlx_forge.models.memory import (
     MODEL_PROFILES,
     HardwareProfile,
     auto_configure,

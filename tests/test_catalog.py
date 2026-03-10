@@ -10,13 +10,13 @@ class TestCatalogEntries:
 
     def test_catalog_not_empty(self):
         """Catalog should contain datasets."""
-        from cortexlab.data.catalog import DATASET_CATALOG
+        from mlx_forge.data.catalog import DATASET_CATALOG
 
         assert len(DATASET_CATALOG) > 0
 
     def test_catalog_entries_have_required_fields(self):
         """All catalog entries should have required fields."""
-        from cortexlab.data.catalog import DATASET_CATALOG
+        from mlx_forge.data.catalog import DATASET_CATALOG
 
         for entry_id, profile in DATASET_CATALOG.items():
             assert profile.id == entry_id, f"ID mismatch: {profile.id} vs {entry_id}"
@@ -30,7 +30,7 @@ class TestCatalogEntries:
 
     def test_catalog_categories(self):
         """Catalog should cover multiple categories."""
-        from cortexlab.data.catalog import DATASET_CATALOG
+        from mlx_forge.data.catalog import DATASET_CATALOG
 
         categories = {p.category for p in DATASET_CATALOG.values()}
         assert "general" in categories
@@ -39,7 +39,7 @@ class TestCatalogEntries:
 
     def test_catalog_has_preference_datasets(self):
         """Catalog should include preference datasets for DPO."""
-        from cortexlab.data.catalog import DATASET_CATALOG
+        from mlx_forge.data.catalog import DATASET_CATALOG
 
         preference_datasets = [
             p for p in DATASET_CATALOG.values() if p.format == "preference"
@@ -48,7 +48,7 @@ class TestCatalogEntries:
 
     def test_catalog_to_dict(self):
         """DatasetProfile.to_dict() returns valid dict."""
-        from cortexlab.data.catalog import DATASET_CATALOG
+        from mlx_forge.data.catalog import DATASET_CATALOG
 
         for profile in DATASET_CATALOG.values():
             d = profile.to_dict()
@@ -63,7 +63,7 @@ class TestConverters:
 
     def test_rename_converter(self):
         """Rename converter maps columns correctly."""
-        from cortexlab.data.converter import _convert_rename
+        from mlx_forge.data.converter import _convert_rename
 
         dataset = [
             {"instruction": "Say hi", "response": "Hello!"},
@@ -78,7 +78,7 @@ class TestConverters:
 
     def test_alpaca_converter(self):
         """Alpaca converter combines instruction + input."""
-        from cortexlab.data.converter import _convert_alpaca
+        from mlx_forge.data.converter import _convert_alpaca
 
         dataset = [
             {"instruction": "Translate", "input": "Hello", "output": "Hola"},
@@ -94,7 +94,7 @@ class TestConverters:
 
     def test_sharegpt_converter(self):
         """ShareGPT converter converts from/value to role/content."""
-        from cortexlab.data.converter import _convert_sharegpt
+        from mlx_forge.data.converter import _convert_sharegpt
 
         dataset = [
             {"conversations": [
@@ -112,7 +112,7 @@ class TestConverters:
 
     def test_text_converter(self):
         """Text converter renames text column."""
-        from cortexlab.data.converter import _convert_text
+        from mlx_forge.data.converter import _convert_text
 
         dataset = [{"content": "Hello world"}]
         result = _convert_text(dataset, {"text": "content"})
@@ -121,7 +121,7 @@ class TestConverters:
 
     def test_chat_messages_converter(self):
         """Chat messages converter normalizes messages."""
-        from cortexlab.data.converter import _convert_chat_messages
+        from mlx_forge.data.converter import _convert_chat_messages
 
         dataset = [
             {"messages": [
@@ -136,7 +136,7 @@ class TestConverters:
 
     def test_preference_converter_string(self):
         """Preference converter handles string chosen/rejected."""
-        from cortexlab.data.converter import _convert_preference
+        from mlx_forge.data.converter import _convert_preference
 
         dataset = [
             {"prompt": "Hi", "chosen": "Good response", "rejected": "Bad response"},
@@ -150,7 +150,7 @@ class TestConverters:
 
     def test_preference_converter_messages(self):
         """Preference converter handles message list chosen/rejected."""
-        from cortexlab.data.converter import _convert_preference
+        from mlx_forge.data.converter import _convert_preference
 
         dataset = [
             {
@@ -168,8 +168,8 @@ class TestConvertDataset:
 
     def test_convert_with_profile(self):
         """convert_dataset uses profile's column mapping."""
-        from cortexlab.data.catalog import ColumnMapping, DatasetProfile
-        from cortexlab.data.converter import convert_dataset
+        from mlx_forge.data.catalog import ColumnMapping, DatasetProfile
+        from mlx_forge.data.converter import convert_dataset
 
         profile = DatasetProfile(
             id="test",
@@ -198,14 +198,14 @@ class TestRegistry:
 
     def test_list_empty_registry(self, tmp_path):
         """Empty registry returns empty list."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         registry = DatasetRegistry(base_dir=str(tmp_path / "datasets"))
         assert registry.list_datasets() == []
 
     def test_import_local(self, tmp_path):
         """Import a local JSONL file."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         # Create a test JSONL file
         data_file = tmp_path / "test.jsonl"
@@ -227,7 +227,7 @@ class TestRegistry:
 
     def test_get_samples(self, tmp_path):
         """Preview samples from imported dataset."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         data_file = tmp_path / "test.jsonl"
         with open(data_file, "w") as f:
@@ -243,7 +243,7 @@ class TestRegistry:
 
     def test_delete_dataset(self, tmp_path):
         """Delete a dataset from registry."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         data_file = tmp_path / "test.jsonl"
         with open(data_file, "w") as f:
@@ -258,14 +258,14 @@ class TestRegistry:
 
     def test_delete_nonexistent(self, tmp_path):
         """Deleting non-existent dataset returns False."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         registry = DatasetRegistry(base_dir=str(tmp_path / "datasets"))
         assert not registry.delete_dataset("nonexistent")
 
     def test_list_catalog(self):
         """list_catalog returns full catalog."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         registry = DatasetRegistry()
         catalog = registry.list_catalog()
@@ -273,7 +273,7 @@ class TestRegistry:
 
     def test_get_dataset(self, tmp_path):
         """Get metadata for a specific dataset."""
-        from cortexlab.data.registry import DatasetRegistry
+        from mlx_forge.data.registry import DatasetRegistry
 
         data_file = tmp_path / "test.jsonl"
         with open(data_file, "w") as f:

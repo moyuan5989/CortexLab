@@ -1,4 +1,4 @@
-"""Tests for data validation (cortexlab data validate)."""
+"""Tests for data validation (mlx_forge data validate)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from cortexlab.data.validate import validate_file
+from mlx_forge.data.validate import validate_file
 
 
 @pytest.fixture

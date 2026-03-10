@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Download and convert HuggingFace datasets to LMForge JSONL format.
+"""Download and convert HuggingFace datasets to MLX Forge JSONL format.
 
-This is a standalone script (not part of lmforge package). Install dependencies:
+This is a standalone script (not part of mlx-forge package). Install dependencies:
     pip install datasets tqdm
 
 Usage:
@@ -38,7 +38,7 @@ except ImportError:
 # ============================================================================
 
 def convert_alpaca(example: dict) -> dict:
-    """Convert Alpaca format to LMForge chat format.
+    """Convert Alpaca format to MLX Forge chat format.
 
     Alpaca schema: {instruction, input (optional), output}
     """
@@ -60,7 +60,7 @@ def convert_alpaca(example: dict) -> dict:
 
 
 def convert_openassistant(example: dict) -> dict | None:
-    """Convert OpenAssistant format to LMForge chat format.
+    """Convert OpenAssistant format to MLX Forge chat format.
 
     OpenAssistant has multi-turn conversations. We extract user-assistant pairs.
     """
@@ -89,7 +89,7 @@ def convert_openassistant(example: dict) -> dict | None:
 
 
 def convert_dolly(example: dict) -> dict:
-    """Convert Databricks Dolly format to LMForge chat format.
+    """Convert Databricks Dolly format to MLX Forge chat format.
 
     Dolly schema: {instruction, context (optional), response}
     """
@@ -111,7 +111,7 @@ def convert_dolly(example: dict) -> dict:
 
 
 def convert_sharegpt(example: dict) -> dict | None:
-    """Convert ShareGPT format to LMForge chat format.
+    """Convert ShareGPT format to MLX Forge chat format.
 
     ShareGPT schema: {conversations: [{from: human/gpt, value: text}]}
     """
@@ -258,8 +258,8 @@ def convert_dataset(
 
     print("\n✓ Dataset conversion complete!")
     print("\nNext steps:")
-    print(f"  lmforge prepare --data {train_path} --model <your-model>")
-    print("  lmforge train --config train.yaml")
+    print(f"  mlx-forge prepare --data {train_path} --model <your-model>")
+    print("  mlx-forge train --config train.yaml")
 
 
 # ============================================================================
@@ -268,7 +268,7 @@ def convert_dataset(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Download and convert HuggingFace datasets to LMForge JSONL format",
+        description="Download and convert HuggingFace datasets to MLX Forge JSONL format",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

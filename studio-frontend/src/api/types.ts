@@ -1,4 +1,4 @@
-// API response types matching the CortexLab Studio backend
+// API response types matching the MLX Forge Studio backend
 
 export interface Run {
   id: string

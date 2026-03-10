@@ -22,7 +22,7 @@ import pytest
 
 def _make_tiny_model():
     """Create a tiny Llama model for testing."""
-    from cortexlab.models.architectures.llama import Model, ModelArgs
+    from mlx_forge.models.architectures.llama import Model, ModelArgs
 
     args = ModelArgs(
         model_type="llama",
@@ -49,7 +49,7 @@ class TestQLoRAConfig:
 
     def test_quantization_config_defaults(self):
         """Default quantization config should be 4-bit, group_size=64."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         config = QuantizationConfig()
         assert config.bits == 4
@@ -57,21 +57,21 @@ class TestQLoRAConfig:
 
     def test_quantization_config_4bit(self):
         """4-bit quantization should be accepted."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         config = QuantizationConfig(bits=4, group_size=64)
         assert config.bits == 4
 
     def test_quantization_config_8bit(self):
         """8-bit quantization should be accepted."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         config = QuantizationConfig(bits=8, group_size=32)
         assert config.bits == 8
 
     def test_quantization_config_invalid_bits(self):
         """Non-4/8 bits should be rejected."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         with pytest.raises(ValueError, match="bits must be 4 or 8"):
             QuantizationConfig(bits=3)
@@ -81,14 +81,14 @@ class TestQLoRAConfig:
 
     def test_quantization_config_invalid_group_size(self):
         """Non-32/64/128 group_size should be rejected."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         with pytest.raises(ValueError, match="group_size must be 32, 64, or 128"):
             QuantizationConfig(group_size=48)
 
     def test_quantization_config_valid_group_sizes(self):
         """All valid group sizes should be accepted."""
-        from cortexlab.config import QuantizationConfig
+        from mlx_forge.config import QuantizationConfig
 
         for gs in (32, 64, 128):
             config = QuantizationConfig(group_size=gs)
@@ -96,14 +96,14 @@ class TestQLoRAConfig:
 
     def test_model_config_quantization_none_default(self):
         """ModelConfig should default to quantization=None."""
-        from cortexlab.config import ModelConfig
+        from mlx_forge.config import ModelConfig
 
         config = ModelConfig(path="test/model")
         assert config.quantization is None
 
     def test_model_config_with_quantization(self):
         """ModelConfig should accept quantization sub-config."""
-        from cortexlab.config import ModelConfig
+        from mlx_forge.config import ModelConfig
 
         config = ModelConfig(
             path="test/model",
@@ -114,7 +114,7 @@ class TestQLoRAConfig:
 
     def test_training_config_backward_compat(self):
         """Config without quantization should still work (v0 compat)."""
-        from cortexlab.config import TrainingConfig
+        from mlx_forge.config import TrainingConfig
 
         config = TrainingConfig(
             model={"path": "test/model"},
@@ -136,8 +136,8 @@ class TestQLoRAQuantization:
 
     def test_quantize_converts_linear_to_quantized(self):
         """quantize_model should convert Linear to QuantizedLinear."""
-        from cortexlab.config import QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge.config import QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
 
@@ -154,8 +154,8 @@ class TestQLoRAQuantization:
 
     def test_quantize_preserves_forward_pass(self):
         """Quantized model should still produce logits of correct shape."""
-        from cortexlab.config import QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge.config import QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
         config = QuantizationConfig(bits=4, group_size=32)
@@ -169,10 +169,10 @@ class TestQLoRAQuantization:
 
     def test_qlora_quantize_then_lora(self):
         """QLoRA: quantize first, then apply LoRA. Forward pass should work."""
-        from cortexlab.adapters.lora import apply_lora
-        from cortexlab.adapters.targeting import resolve_targets
-        from cortexlab.config import AdapterConfig, QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge.adapters.lora import apply_lora
+        from mlx_forge.adapters.targeting import resolve_targets
+        from mlx_forge.config import AdapterConfig, QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
 
@@ -195,10 +195,10 @@ class TestQLoRAQuantization:
 
     def test_qlora_gradients_flow(self):
         """QLoRA gradients should flow through LoRA params only."""
-        from cortexlab.adapters.lora import apply_lora
-        from cortexlab.adapters.targeting import resolve_targets
-        from cortexlab.config import AdapterConfig, QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge.adapters.lora import apply_lora
+        from mlx_forge.adapters.targeting import resolve_targets
+        from mlx_forge.config import AdapterConfig, QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
 
@@ -226,8 +226,8 @@ class TestQLoRAQuantization:
 
     def test_quantize_8bit(self):
         """8-bit quantization should also work."""
-        from cortexlab.config import QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge.config import QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
         config = QuantizationConfig(bits=8, group_size=32)
@@ -249,21 +249,21 @@ class TestGradientCheckpointing:
 
     def test_config_default_false(self):
         """gradient_checkpointing should default to False."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams()
         assert params.gradient_checkpointing is False
 
     def test_config_accepts_true(self):
         """gradient_checkpointing=True should be accepted."""
-        from cortexlab.config import TrainingParams
+        from mlx_forge.config import TrainingParams
 
         params = TrainingParams(gradient_checkpointing=True)
         assert params.gradient_checkpointing is True
 
     def test_checkpointing_same_output(self):
         """Model with checkpointing should produce same logits as without."""
-        from cortexlab import _enable_gradient_checkpointing
+        from mlx_forge import _enable_gradient_checkpointing
 
         # Model without checkpointing
         model1 = _make_tiny_model()
@@ -286,7 +286,7 @@ class TestGradientCheckpointing:
 
     def test_checkpointing_same_gradients(self):
         """Gradients with checkpointing should match gradients without."""
-        from cortexlab import _enable_gradient_checkpointing
+        from mlx_forge import _enable_gradient_checkpointing
 
         def simple_loss(model, x):
             return model(x).sum()
@@ -315,7 +315,7 @@ class TestGradientCheckpointing:
 
     def test_enable_gradient_checkpointing_function(self):
         """_enable_gradient_checkpointing should wrap layer __call__."""
-        from cortexlab import _enable_gradient_checkpointing
+        from mlx_forge import _enable_gradient_checkpointing
 
         model = _make_tiny_model()
         original_call = model.model.layers[0].__call__
@@ -336,7 +336,7 @@ class TestSequencePacking:
 
     def test_pack_single_sequence(self):
         """Single sequence should create one bin."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [{"input_ids": [1, 2, 3, 4, 5], "labels": [-100, -100, 3, 4, 5]}]
         packed = pack_sequences(dataset, max_seq_length=32)
@@ -348,7 +348,7 @@ class TestSequencePacking:
 
     def test_pack_multiple_short_sequences(self):
         """Short sequences should be packed into fewer bins."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [
             {"input_ids": [1, 2, 3], "labels": [-100, 2, 3]},
@@ -364,7 +364,7 @@ class TestSequencePacking:
 
     def test_pack_respects_max_seq_length(self):
         """No bin should exceed max_seq_length."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [
             {"input_ids": list(range(10)), "labels": list(range(10))},
@@ -378,7 +378,7 @@ class TestSequencePacking:
 
     def test_pack_segment_ids_correct(self):
         """Segment IDs should identify which sequence each token belongs to."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [
             {"input_ids": [1, 2, 3], "labels": [-100, 2, 3]},
@@ -398,7 +398,7 @@ class TestSequencePacking:
 
     def test_pack_truncates_long_sequences(self):
         """Sequences longer than max_seq_length should be truncated."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [{"input_ids": list(range(100)), "labels": list(range(100))}]
         packed = pack_sequences(dataset, max_seq_length=32)
@@ -409,7 +409,7 @@ class TestSequencePacking:
 
     def test_pack_labels_preserved(self):
         """Labels should be preserved through packing."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         dataset = [
             {"input_ids": [10, 20, 30, 40, 50], "labels": [-100, -100, 30, 40, 50]},
@@ -422,7 +422,7 @@ class TestSequencePacking:
 
     def test_pack_empty_dataset(self):
         """Empty dataset should return no packed sequences."""
-        from cortexlab.data.packing import pack_sequences
+        from mlx_forge.data.packing import pack_sequences
 
         packed = pack_sequences([], max_seq_length=32)
         assert len(packed) == 0
@@ -437,7 +437,7 @@ class TestPackedBatching:
 
     def test_iterate_packed_batches_shapes(self):
         """Packed batches should have correct shapes: (B,T) x3."""
-        from cortexlab.data.batching import iterate_packed_batches
+        from mlx_forge.data.batching import iterate_packed_batches
 
         dataset = [
             {"input_ids": list(range(10)), "labels": list(range(10))}
@@ -460,7 +460,7 @@ class TestPackedBatching:
 
     def test_iterate_packed_batches_padding(self):
         """Padding positions should have segment_id = -1 and labels = -100."""
-        from cortexlab.data.batching import iterate_packed_batches
+        from mlx_forge.data.batching import iterate_packed_batches
 
         dataset = [
             {"input_ids": [1, 2, 3], "labels": [-100, 2, 3]},
@@ -485,14 +485,14 @@ class TestPackedBatching:
 
     def test_packing_config_default_false(self):
         """DataConfig.packing should default to False."""
-        from cortexlab.config import DataConfig
+        from mlx_forge.config import DataConfig
 
         config = DataConfig(train="t.jsonl", valid="v.jsonl")
         assert config.packing is False
 
     def test_packing_config_accepts_true(self):
         """DataConfig.packing=True should be accepted."""
-        from cortexlab.config import DataConfig
+        from mlx_forge.config import DataConfig
 
         config = DataConfig(train="t.jsonl", valid="v.jsonl", packing=True)
         assert config.packing is True
@@ -507,7 +507,7 @@ class TestPackedLoss:
 
     def test_packed_loss_basic(self):
         """Packed loss should compute without errors."""
-        from cortexlab.trainer.trainer import loss_fn_packed
+        from mlx_forge.trainer.trainer import loss_fn_packed
 
         model = _make_tiny_model()
 
@@ -525,7 +525,7 @@ class TestPackedLoss:
 
     def test_packed_loss_no_cross_segment(self):
         """Loss should not be computed across segment boundaries."""
-        from cortexlab.trainer.trainer import loss_fn_packed
+        from mlx_forge.trainer.trainer import loss_fn_packed
 
         model = _make_tiny_model()
 
@@ -546,7 +546,7 @@ class TestPackedLoss:
 
     def test_packed_loss_excludes_padding(self):
         """Loss should not be computed on padding tokens."""
-        from cortexlab.trainer.trainer import loss_fn_packed
+        from mlx_forge.trainer.trainer import loss_fn_packed
 
         model = _make_tiny_model()
 
@@ -564,7 +564,7 @@ class TestPackedLoss:
 
     def test_packed_loss_gradients(self):
         """Packed loss should produce valid gradients."""
-        from cortexlab.trainer.trainer import loss_fn_packed
+        from mlx_forge.trainer.trainer import loss_fn_packed
 
         model = _make_tiny_model()
 
@@ -588,11 +588,11 @@ class TestCombinedFeatures:
 
     def test_qlora_with_checkpointing(self):
         """QLoRA + gradient checkpointing should work together."""
-        from cortexlab import _enable_gradient_checkpointing
-        from cortexlab.adapters.lora import apply_lora
-        from cortexlab.adapters.targeting import resolve_targets
-        from cortexlab.config import AdapterConfig, QuantizationConfig
-        from cortexlab.models.quantize import quantize_model
+        from mlx_forge import _enable_gradient_checkpointing
+        from mlx_forge.adapters.lora import apply_lora
+        from mlx_forge.adapters.targeting import resolve_targets
+        from mlx_forge.config import AdapterConfig, QuantizationConfig
+        from mlx_forge.models.quantize import quantize_model
 
         model = _make_tiny_model()
 
@@ -621,7 +621,7 @@ class TestCombinedFeatures:
 
     def test_all_defaults_v0_compat(self):
         """All new config fields should default to v0 behavior."""
-        from cortexlab.config import TrainingConfig
+        from mlx_forge.config import TrainingConfig
 
         config = TrainingConfig(
             model={"path": "test/model"},
@@ -637,7 +637,7 @@ class TestCombinedFeatures:
 
     def test_config_from_yaml_with_m10_fields(self, tmp_path):
         """YAML config with M10 fields should parse correctly."""
-        from cortexlab.config import TrainingConfig
+        from mlx_forge.config import TrainingConfig
 
         yaml_content = """
 schema_version: 1
