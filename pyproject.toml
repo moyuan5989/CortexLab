@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mlx-forge"
-version = "0.2.1"
+version = "0.2.2"
 description = "Fine-tune, experiment with, and run LLMs locally on your Mac"
 license = "MIT"
 readme = "README.md"
@@ -30,6 +30,7 @@ dependencies = [
     "pyyaml>=6.0",
     "numpy>=1.24.0",
     "transformers>=4.35.0",
+    "jinja2>=3.0",
     "safetensors>=0.4.0",
     "huggingface-hub>=0.20.0",
     "datasets>=2.16.0",
