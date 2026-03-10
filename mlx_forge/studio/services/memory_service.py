@@ -67,5 +67,10 @@ class MemoryService:
         }
 
     def get_compatible_models(self) -> list[dict]:
-        """Return models compatible with current hardware."""
-        return get_compatible_models(self.hardware)
+        """Return models compatible with current hardware, with download status."""
+        from mlx_forge.studio.services.model_service import ModelService
+        model_service = ModelService()
+        models = get_compatible_models(self.hardware)
+        for m in models:
+            m["downloaded"] = model_service.get_model(m["model_id"]) is not None
+        return models

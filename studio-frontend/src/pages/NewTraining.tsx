@@ -197,7 +197,6 @@ export default function NewTraining() {
             onSelect={setSelectedModel}
             memoryEstimate={memEstimate.data || null}
             hardware={hardware || null}
-            recipe={selectedRecipe}
           />
         )}
         {currentStep === 2 && (
@@ -343,19 +342,16 @@ function StepTask({ recipes, selected, onSelect }: {
 }
 
 // Step 2: Select Model
-function StepModel({ models, selected, onSelect, memoryEstimate, hardware, recipe }: {
+function StepModel({ models, selected, onSelect, memoryEstimate, hardware }: {
   models: CompatibleModel[]
   selected: string
   onSelect: (m: string) => void
   memoryEstimate: MemoryEstimateResult | null
   hardware: { total_memory_gb: number; training_budget_gb: number; chip_name: string } | null
-  recipe: Recipe | null
 }) {
-  const recommended = recipe?.recommended_models || []
   const sortedModels = [...models].sort((a, b) => {
-    const aRec = recommended.includes(a.model_id) ? -1 : 0
-    const bRec = recommended.includes(b.model_id) ? -1 : 0
-    if (aRec !== bRec) return aRec - bRec
+    // Downloaded models first
+    if (a.downloaded !== b.downloaded) return a.downloaded ? -1 : 1
     return a.num_params_b - b.num_params_b
   })
 
@@ -375,7 +371,6 @@ function StepModel({ models, selected, onSelect, memoryEstimate, hardware, recip
       <div className="space-y-2 max-h-[280px] overflow-y-auto">
         {sortedModels.map((model) => {
           const isSelected = selected === model.model_id
-          const isRecommended = recommended.includes(model.model_id)
           const canFit = model.fp16.fits || model.qlora_4bit.fits
 
           return (
@@ -397,9 +392,19 @@ function StepModel({ models, selected, onSelect, memoryEstimate, hardware, recip
                   <span className={cn('font-medium text-sm', isSelected ? 'text-indigo-300' : 'text-label')}>
                     {model.display_name}
                   </span>
-                  {isRecommended && (
+                  {model.downloaded && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-500/20 text-blue-400">
+                      Downloaded
+                    </span>
+                  )}
+                  {model.fit_level === 'comfortable' && (
                     <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-500/20 text-emerald-400">
-                      Recommended
+                      Good fit
+                    </span>
+                  )}
+                  {model.fit_level === 'tight' && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/20 text-amber-400">
+                      Tight fit
                     </span>
                   )}
                 </div>

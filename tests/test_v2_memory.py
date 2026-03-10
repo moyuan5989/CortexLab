@@ -161,12 +161,12 @@ class TestCompatibleModels:
             assert "total_gb" in m["fp16"]
             assert "fits" in m["fp16"]
 
-    def test_some_models_recommended(self):
-        """At least one model is recommended for 36GB."""
+    def test_some_models_comfortable(self):
+        """At least one model is a comfortable fit for 36GB."""
         hw = HardwareProfile(total_memory_gb=36.0, training_budget_gb=27.0)
         models = get_compatible_models(hw)
-        recommended = [m for m in models if m["recommended"]]
-        assert len(recommended) > 0
+        comfortable = [m for m in models if m["fit_level"] == "comfortable"]
+        assert len(comfortable) > 0
 
 
 class TestAutoConfiguration:

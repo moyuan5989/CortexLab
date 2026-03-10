@@ -281,11 +281,15 @@ def get_compatible_models(hardware: Optional[HardwareProfile] = None) -> list[di
             },
         }
 
-        # Recommend if it fits comfortably (under 80% of budget)
-        if qlora_est.fits and qlora_est.total_gb < hw.training_budget_gb * 0.8:
-            entry["recommended"] = True
+        budget = hw.training_budget_gb
+        qlora_ratio = qlora_est.total_gb / budget if budget > 0 else 1.0
+
+        if qlora_est.fits and qlora_ratio < 0.5:
+            entry["fit_level"] = "comfortable"
+        elif qlora_est.fits and qlora_ratio < 0.8:
+            entry["fit_level"] = "tight"
         else:
-            entry["recommended"] = False
+            entry["fit_level"] = "unlikely"
 
         results.append(entry)
 

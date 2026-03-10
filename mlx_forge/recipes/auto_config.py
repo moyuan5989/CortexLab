@@ -6,6 +6,7 @@ TrainingConfig with smart defaults.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 from mlx_forge.models.memory import (
@@ -13,6 +14,16 @@ from mlx_forge.models.memory import (
     auto_configure,
 )
 from mlx_forge.recipes.registry import Recipe
+
+
+def _resolve_data_path(path: str) -> str:
+    """If path is a directory containing data.jsonl, return the file path."""
+    p = Path(path).expanduser()
+    if p.is_dir():
+        jsonl = p / "data.jsonl"
+        if jsonl.exists():
+            return str(jsonl)
+    return path
 
 
 def resolve_config(
@@ -48,10 +59,10 @@ def resolve_config(
     config.setdefault("model", {})
     config["model"]["path"] = model_id
 
-    # Set data paths
+    # Set data paths (resolve directories to data.jsonl if needed)
     config.setdefault("data", {})
-    config["data"]["train"] = train_path
-    config["data"]["valid"] = valid_path
+    config["data"]["train"] = _resolve_data_path(train_path)
+    config["data"]["valid"] = _resolve_data_path(valid_path)
 
     # Set training type
     config.setdefault("training", {})
