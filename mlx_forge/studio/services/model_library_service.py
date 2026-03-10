@@ -49,10 +49,15 @@ class ModelLibraryService:
 
             downloaded = self._model_service.get_model(model_id) is not None
 
-            recommended = (
-                qlora_est.fits
-                and qlora_est.total_gb < hw.training_budget_gb * 0.8
-            )
+            budget = hw.training_budget_gb
+            qlora_ratio = qlora_est.total_gb / budget if budget > 0 else 1.0
+
+            if qlora_est.fits and qlora_ratio < 0.5:
+                fit_level = "comfortable"
+            elif qlora_est.fits and qlora_ratio < 0.8:
+                fit_level = "tight"
+            else:
+                fit_level = "unlikely"
 
             results.append({
                 "model_id": model_id,
@@ -71,7 +76,7 @@ class ModelLibraryService:
                     "total_gb": round(qlora_est.total_gb, 1),
                     "fits": qlora_est.fits,
                 },
-                "recommended": recommended,
+                "fit_level": fit_level,
             })
 
         return results

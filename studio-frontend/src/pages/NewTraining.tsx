@@ -15,8 +15,9 @@ import { cn, formatMemory } from '../lib/utils'
 import { useRecipes, useResolveRecipe } from '../hooks/useRecipes'
 import { useCompatibleModels, useMemoryEstimate, useHardware } from '../hooks/useMemory'
 import { useSubmitJob } from '../hooks/useQueue'
+import { useDownloadedDatasets } from '../hooks/useDatasets'
 import MemoryBar from '../components/shared/MemoryBar'
-import type { Recipe, CompatibleModel, MemoryEstimateResult } from '../api/types'
+import type { Recipe, CompatibleModel, MemoryEstimateResult, DownloadedDataset } from '../api/types'
 
 const STEPS = ['Task', 'Model', 'Data', 'Config', 'Review'] as const
 
@@ -44,6 +45,8 @@ export default function NewTraining() {
       setCurrentStep(1)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [dataSource, setDataSource] = useState<'downloaded' | 'custom'>('downloaded')
+  const [selectedDataset, setSelectedDataset] = useState<string>('')
   const [trainPath, setTrainPath] = useState('')
   const [validPath, setValidPath] = useState('')
   const [advancedMode, setAdvancedMode] = useState(false)
@@ -53,6 +56,7 @@ export default function NewTraining() {
   const { data: recipes } = useRecipes()
   const { data: models } = useCompatibleModels()
   const { data: hardware } = useHardware()
+  const { data: downloadedDatasets } = useDownloadedDatasets()
   const memEstimate = useMemoryEstimate()
   const submitJob = useSubmitJob()
   const resolveRecipe = useResolveRecipe()
@@ -79,7 +83,7 @@ export default function NewTraining() {
     switch (currentStep) {
       case 0: return selectedRecipe != null
       case 1: return selectedModel !== ''
-      case 2: return trainPath !== '' && validPath !== ''
+      case 2: return dataSource === 'downloaded' ? selectedDataset !== '' : trainPath !== '' && validPath !== ''
       case 3: return true
       case 4: return true
       default: return false
@@ -88,12 +92,21 @@ export default function NewTraining() {
 
   const resolveConfig = async () => {
     if (!selectedRecipe) return null
+    let resolvedTrainPath = trainPath
+    let resolvedValidPath = validPath
+    if (dataSource === 'downloaded' && selectedDataset) {
+      const ds = downloadedDatasets?.find((d) => d.id === selectedDataset)
+      if (ds) {
+        resolvedTrainPath = ds.path
+        resolvedValidPath = ds.path
+      }
+    }
     return resolveRecipe.mutateAsync({
       recipeId: selectedRecipe.id,
       body: {
         model_id: selectedModel,
-        train_path: trainPath,
-        valid_path: validPath,
+        train_path: resolvedTrainPath,
+        valid_path: resolvedValidPath,
         overrides: configOverrides,
       },
     })
@@ -189,6 +202,11 @@ export default function NewTraining() {
         )}
         {currentStep === 2 && (
           <StepData
+            dataSource={dataSource}
+            onDataSourceChange={setDataSource}
+            downloadedDatasets={downloadedDatasets || []}
+            selectedDataset={selectedDataset}
+            onDatasetSelect={setSelectedDataset}
             trainPath={trainPath}
             validPath={validPath}
             onTrainChange={setTrainPath}
@@ -210,8 +228,12 @@ export default function NewTraining() {
           <StepReview
             recipe={selectedRecipe}
             model={selectedModel}
-            trainPath={trainPath}
-            validPath={validPath}
+            trainPath={dataSource === 'downloaded' && selectedDataset
+              ? downloadedDatasets?.find((d) => d.id === selectedDataset)?.path || selectedDataset
+              : trainPath}
+            validPath={dataSource === 'downloaded' && selectedDataset
+              ? downloadedDatasets?.find((d) => d.id === selectedDataset)?.path || selectedDataset
+              : validPath}
             overrides={configOverrides}
             memoryEstimate={memEstimate.data || null}
             hardware={hardware || null}
@@ -409,45 +431,128 @@ function StepModel({ models, selected, onSelect, memoryEstimate, hardware, recip
 }
 
 // Step 3: Prepare Data
-function StepData({ trainPath, validPath, onTrainChange, onValidChange, recipe }: {
+function StepData({ dataSource, onDataSourceChange, downloadedDatasets, selectedDataset, onDatasetSelect, trainPath, validPath, onTrainChange, onValidChange, recipe }: {
+  dataSource: 'downloaded' | 'custom'
+  onDataSourceChange: (s: 'downloaded' | 'custom') => void
+  downloadedDatasets: DownloadedDataset[]
+  selectedDataset: string
+  onDatasetSelect: (id: string) => void
   trainPath: string
   validPath: string
   onTrainChange: (p: string) => void
   onValidChange: (p: string) => void
   recipe: Recipe | null
 }) {
+  const navigate = useNavigate()
+
   return (
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-semibold text-heading">Prepare Data</h3>
         <p className="text-sm text-caption">
-          Provide paths to your JSONL training and validation files.
+          Select a downloaded dataset or provide custom file paths.
           {recipe && ` Expected format: ${recipe.data_format}`}
         </p>
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-label mb-1">Training Data</label>
-          <input
-            type="text"
-            value={trainPath}
-            onChange={(e) => onTrainChange(e.target.value)}
-            placeholder="/path/to/train.jsonl"
-            className="w-full rounded-md border border-default bg-surface-input px-3 py-2 text-sm text-label placeholder-muted focus:border-indigo-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-label mb-1">Validation Data</label>
-          <input
-            type="text"
-            value={validPath}
-            onChange={(e) => onValidChange(e.target.value)}
-            placeholder="/path/to/valid.jsonl"
-            className="w-full rounded-md border border-default bg-surface-input px-3 py-2 text-sm text-label placeholder-muted focus:border-indigo-500 focus:outline-none"
-          />
-        </div>
+      {/* Source toggle */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onDataSourceChange('downloaded')}
+          className={cn(
+            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+            dataSource === 'downloaded'
+              ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+              : 'text-body border border-subtle hover:border-default'
+          )}
+        >
+          Downloaded Datasets
+        </button>
+        <button
+          onClick={() => onDataSourceChange('custom')}
+          className={cn(
+            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+            dataSource === 'custom'
+              ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+              : 'text-body border border-subtle hover:border-default'
+          )}
+        >
+          Custom File Path
+        </button>
       </div>
+
+      {dataSource === 'downloaded' ? (
+        <div className="space-y-3">
+          {downloadedDatasets.length === 0 ? (
+            <div className="rounded-md border border-subtle bg-surface-card p-6 text-center">
+              <p className="text-sm text-caption mb-3">No datasets downloaded yet.</p>
+              <button
+                onClick={() => navigate('/datasets')}
+                className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
+              >
+                <Download className="h-3 w-3" /> Browse Dataset Catalog
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[260px] overflow-y-auto">
+              {downloadedDatasets.map((ds) => {
+                const isSelected = selectedDataset === ds.id
+                return (
+                  <button
+                    key={ds.id}
+                    onClick={() => onDatasetSelect(ds.id)}
+                    className={cn(
+                      'w-full text-left rounded-lg border p-3 transition-all',
+                      isSelected
+                        ? 'border-indigo-500 bg-indigo-500/10'
+                        : 'border-subtle bg-surface-card hover:border-default'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={cn('font-medium text-sm', isSelected ? 'text-indigo-300' : 'text-label')}>
+                        {ds.display_name}
+                      </span>
+                      <span className="text-xs text-caption">{ds.num_samples.toLocaleString()} samples</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-caption">
+                      <span>Format: {ds.format}</span>
+                      <span className="font-mono text-muted truncate max-w-[300px]">{ds.path}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+          {selectedDataset && (
+            <p className="text-xs text-muted">
+              Validation split will be auto-created from the training data if no separate validation file exists.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-label mb-1">Training Data</label>
+            <input
+              type="text"
+              value={trainPath}
+              onChange={(e) => onTrainChange(e.target.value)}
+              placeholder="/path/to/train.jsonl"
+              className="w-full rounded-md border border-default bg-surface-input px-3 py-2 text-sm text-label placeholder-muted focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-label mb-1">Validation Data</label>
+            <input
+              type="text"
+              value={validPath}
+              onChange={(e) => onValidChange(e.target.value)}
+              placeholder="/path/to/valid.jsonl"
+              className="w-full rounded-md border border-default bg-surface-input px-3 py-2 text-sm text-label placeholder-muted focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
 
       {recipe && (
         <div className="rounded-md bg-surface-card border border-default/50 p-3">

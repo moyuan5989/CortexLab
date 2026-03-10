@@ -187,7 +187,7 @@ export interface LibraryModel {
   downloaded: boolean
   fp16: { total_gb: number; fits: boolean }
   qlora_4bit: { total_gb: number; fits: boolean }
-  recommended: boolean
+  fit_level: 'comfortable' | 'tight' | 'unlikely'
 }
 
 export interface QueueJob {

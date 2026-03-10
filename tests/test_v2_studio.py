@@ -282,12 +282,12 @@ class TestModelLibraryAPI:
         required_fields = [
             "model_id", "display_name", "num_params_b", "architecture",
             "hidden_dim", "num_layers", "vocab_size", "downloaded",
-            "fp16", "qlora_4bit", "recommended",
+            "fp16", "qlora_4bit", "fit_level",
         ]
         for field in required_fields:
             assert field in entry, f"Missing field: {field}"
         assert isinstance(entry["downloaded"], bool)
-        assert isinstance(entry["recommended"], bool)
+        assert entry["fit_level"] in ("comfortable", "tight", "unlikely")
 
     def test_library_sorted_by_size(self, client):
         """Library is sorted ascending by num_params_b."""

@@ -1,14 +1,18 @@
 """MLX Forge — LoRA SFT training framework for MLX on Apple Silicon."""
 
 import json
+import logging
 from pathlib import Path
 
-from transformers import AutoTokenizer
+# Suppress "PyTorch was not found..." warning emitted during transformers import
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
-from mlx_forge._version import __version__ as __version__
-from mlx_forge.data.formats import detect_format, validate_samples
-from mlx_forge.data.preprocessing import tokenize_dataset
-from mlx_forge.inference.engine import GenerationResult
+from transformers import AutoTokenizer  # noqa: E402
+
+from mlx_forge._version import __version__ as __version__  # noqa: E402
+from mlx_forge.data.formats import detect_format, validate_samples  # noqa: E402
+from mlx_forge.data.preprocessing import tokenize_dataset  # noqa: E402
+from mlx_forge.inference.engine import GenerationResult  # noqa: E402
 
 
 def prepare(

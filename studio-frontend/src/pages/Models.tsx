@@ -6,7 +6,7 @@ import { useHardware } from '../hooks/useMemory'
 import { cn, formatMemory } from '../lib/utils'
 import type { LibraryModel } from '../api/types'
 
-type FitFilter = 'all' | 'fits' | 'recommended'
+type FitFilter = 'all' | 'fits' | 'comfortable'
 type SortKey = 'size' | 'name'
 
 const ARCH_OPTIONS = ['all', 'qwen3_5', 'qwen3', 'qwen2', 'llama', 'gemma2', 'gemma3', 'phi3', 'phi4'] as const
@@ -29,8 +29,8 @@ export default function Models() {
     }
     if (fitFilter === 'fits') {
       result = result.filter((m) => m.fp16.fits || m.qlora_4bit.fits)
-    } else if (fitFilter === 'recommended') {
-      result = result.filter((m) => m.recommended)
+    } else if (fitFilter === 'comfortable') {
+      result = result.filter((m) => m.fit_level === 'comfortable')
     }
 
     if (sortKey === 'name') {
@@ -78,7 +78,7 @@ export default function Models() {
         >
           <option value="all">All Models</option>
           <option value="fits">Fits on Device</option>
-          <option value="recommended">Recommended</option>
+          <option value="comfortable">Good Fit</option>
         </select>
 
         <select
@@ -125,9 +125,19 @@ function ModelCard({ model, onTrain }: { model: LibraryModel; onTrain: () => voi
       <div className="flex items-start justify-between mb-1">
         <h3 className="text-sm font-medium text-label">{model.display_name}</h3>
         <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-          {model.recommended && (
+          {model.fit_level === 'comfortable' && (
             <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-500/20 text-emerald-400">
-              Recommended
+              Good fit
+            </span>
+          )}
+          {model.fit_level === 'tight' && (
+            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/20 text-amber-400">
+              Tight fit
+            </span>
+          )}
+          {model.fit_level === 'unlikely' && (
+            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-500/20 text-red-400">
+              May not fit
             </span>
           )}
           {model.downloaded && (
