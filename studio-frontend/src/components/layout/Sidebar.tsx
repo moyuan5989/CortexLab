@@ -62,7 +62,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-5 py-4 flex items-center justify-between">
-        <span className="text-xs text-muted" id="app-version">v0.2.0</span>
+        <span className="text-xs text-muted" id="app-version">v0.2.1</span>
         <button
           onClick={cycleTheme}
           className="p-1.5 rounded-md text-caption hover:text-heading hover:bg-surface-hover transition-colors"
