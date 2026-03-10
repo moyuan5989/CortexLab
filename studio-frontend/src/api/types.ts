@@ -62,6 +62,8 @@ export interface Model {
   model_id: string
   path: string
   architecture: string
+  supported: boolean
+  size_gb: number | null
   config: Record<string, unknown>
 }
 

@@ -72,6 +72,7 @@ class ModelService:
 
         info = {
             "id": model_id,
+            "model_id": model_id,
             "path": str(snapshot),
             "architecture": None,
             "supported": False,

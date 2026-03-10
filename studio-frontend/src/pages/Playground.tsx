@@ -14,7 +14,7 @@ interface Message {
 
 export default function Playground() {
   const { data: models } = useModels()
-  const supportedModels = models ?? []
+  const supportedModels = (models ?? []).filter((m) => m.supported)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [generating, setGenerating] = useState(false)
