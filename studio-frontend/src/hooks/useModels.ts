@@ -14,5 +14,5 @@ export function useModelLibrary() {
 }
 
 export function useAdapters() {
-  return useQuery({ queryKey: ['adapters'], queryFn: api.getAdapters })
+  return useQuery({ queryKey: ['adapters'], queryFn: api.getAdapters, refetchInterval: 10_000 })
 }

@@ -117,7 +117,7 @@ export default function NewTraining() {
       const config = await resolveConfig()
       if (!config) return
       await submitJob.mutateAsync(config)
-      navigate('/queue')
+      navigate('/experiments')
     } catch {
       // Error handled by mutation state
     }

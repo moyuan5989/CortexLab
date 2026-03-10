@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Settings,
   Plus,
-  ListOrdered,
   Moon,
   Sun,
   Monitor,
@@ -18,7 +17,6 @@ import { useTheme } from '../../hooks/useTheme'
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/new', label: 'New Training', icon: Plus },
-  { to: '/queue', label: 'Job Queue', icon: ListOrdered },
   { to: '/experiments', label: 'Experiments', icon: FlaskConical },
   { to: '/models', label: 'Models', icon: Box },
   { to: '/datasets', label: 'Datasets', icon: Database },
@@ -62,7 +60,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-5 py-4 flex items-center justify-between">
-        <span className="text-xs text-muted" id="app-version">v0.2.2</span>
+        <span className="text-xs text-muted" id="app-version">v0.2.10</span>
         <button
           onClick={cycleTheme}
           className="p-1.5 rounded-md text-caption hover:text-heading hover:bg-surface-hover transition-colors"

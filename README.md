@@ -15,7 +15,7 @@ mlx-forge studio
 ```
 
 <p align="center">
-  <img src="assets/studio-new-training.png" alt="MLX Forge Studio — New Training" width="800">
+  <img src="assets/studio-experiment-detail.png" alt="MLX Forge Studio — Experiment Detail" width="800">
 </p>
 
 ## Why MLX Forge?

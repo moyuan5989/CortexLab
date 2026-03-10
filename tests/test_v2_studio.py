@@ -205,11 +205,12 @@ class TestFrontendV2:
         p = Path("studio-frontend/src/pages/NewTraining.tsx")
         assert p.exists()
 
-    def test_job_queue_page_exists(self):
-        """JobQueue.tsx page exists."""
+    def test_experiments_page_has_queue_merge(self):
+        """Experiments.tsx merges queue data."""
         from pathlib import Path
-        p = Path("studio-frontend/src/pages/JobQueue.tsx")
-        assert p.exists()
+        content = Path("studio-frontend/src/pages/Experiments.tsx").read_text()
+        assert "useQueue" in content
+        assert "useCancelJob" in content
 
     def test_memory_bar_component_exists(self):
         """MemoryBar.tsx component exists."""
@@ -230,16 +231,16 @@ class TestFrontendV2:
         from pathlib import Path
         content = Path("studio-frontend/src/App.tsx").read_text()
         assert "/new" in content
-        assert "/queue" in content
+        assert "/queue" in content  # redirect route
         assert "NewTraining" in content
-        assert "JobQueue" in content
+        assert "Navigate" in content  # /queue redirects to /experiments
 
     def test_sidebar_has_v2_links(self):
         """Sidebar includes V2 navigation links."""
         from pathlib import Path
         content = Path("studio-frontend/src/components/layout/Sidebar.tsx").read_text()
         assert "New Training" in content
-        assert "Job Queue" in content
+        assert "Experiments" in content
 
     def test_api_client_has_v2(self):
         """API client has V2 methods."""

@@ -4,6 +4,9 @@ const variants: Record<string, string> = {
   completed: 'bg-emerald-500/10 text-emerald-400',
   running: 'bg-blue-500/10 text-blue-400',
   stopped: 'bg-amber-500/10 text-amber-400',
+  queued: 'bg-yellow-500/10 text-yellow-400',
+  failed: 'bg-red-500/10 text-red-400',
+  cancelled: 'bg-surface-muted text-caption',
   unknown: 'bg-surface-muted text-body',
 }
 
